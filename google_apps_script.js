@@ -18,15 +18,16 @@
  *  Abrir Google Sheets → la URL tiene el formato:
  *  https://docs.google.com/spreadsheets/d/XXXXXXXXXX/edit
  *                                          ^^^^^^^^^^
- *                               Ese es el SPREADSHEET_ID
+ *                               
+ *  Este es el SPREADSHEET_ID
  * ============================================================
  */
 
 // ⬇️ CAMBIAR ESTE VALOR POR EL ID DE TU HOJA DE CÁLCULO
-var SPREADSHEET_ID = 'PEGAR_AQUI_EL_ID_DE_LA_HOJA';
+var SPREADSHEET_ID = 'https://docs.google.com/spreadsheets/d/1cpADdyuZTH-zxJq9DA8D9oxrylalOxEWvDkV4lIwiOo/edit?usp=sharing';
 
 // Nombre de la hoja dentro del spreadsheet
-var SHEET_NAME = 'Datos';
+var SHEET_NAME = 'Hoja 1';
 
 // ============================================================
 //  ENCABEZADOS DE LA HOJA
