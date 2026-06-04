@@ -501,11 +501,26 @@
               <input type="number" id="input-mm" class="form-control"
                      placeholder="0.0" min="0" max="999" step="0.1" required />
             </div>
-            <!-- Temperatura -->
+            <!-- Temperatura Media -->
             <div class="form-group">
-              <label class="form-label" for="input-temp">🌡️ Temp. <span class="lbl-unit">(°C)</span></label>
+              <label class="form-label" for="input-temp">🌡️ T. Media <span class="lbl-unit">(°C)</span></label>
               <input type="number" id="input-temp" class="form-control"
                      placeholder="28.0" min="-10" max="60" step="0.1" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Temperatura Máxima -->
+            <div class="form-group">
+              <label class="form-label" for="input-temp-max">🔺 T. Máxima <span class="lbl-unit">(°C)</span></label>
+              <input type="number" id="input-temp-max" class="form-control"
+                     placeholder="32.0" min="-10" max="60" step="0.1" />
+            </div>
+            <!-- Temperatura Mínima -->
+            <div class="form-group">
+              <label class="form-label" for="input-temp-min">🔻 T. Mínima <span class="lbl-unit">(°C)</span></label>
+              <input type="number" id="input-temp-min" class="form-control"
+                     placeholder="22.0" min="-10" max="60" step="0.1" />
             </div>
           </div>
 
@@ -891,7 +906,7 @@ function renderHome(){
           <div class="last-record-date">Último registro: ${fmtDate(last.fechaLectura)}</div>
           <div class="last-record-vals">
             🌧️ ${last.mmLluvia?.toFixed(1)} mm
-            ${last.temperatura != null ? ` &nbsp;·&nbsp; 🌡️ ${last.temperatura.toFixed(1)}°C` : ''}
+            ${last.temperatura != null ? ` &nbsp;·&nbsp; 🌡️ Media: ${last.temperatura.toFixed(1)}°C (Máx: ${last.tempMax!=null?last.tempMax.toFixed(1):'—'}, Mín: ${last.tempMin!=null?last.tempMin.toFixed(1):'—'})` : ''}
           </div>
         </div>
       </div>`;
@@ -960,6 +975,8 @@ function setupRegistroForm(id=null){
       document.getElementById('input-fecha').value = rec.fechaLectura;
       document.getElementById('input-mm').value    = rec.mmLluvia ?? '';
       document.getElementById('input-temp').value  = rec.temperatura ?? '';
+      document.getElementById('input-temp-max').value = rec.tempMax ?? '';
+      document.getElementById('input-temp-min').value = rec.tempMin ?? '';
       document.getElementById('input-notas').value = rec.notas || '';
       document.getElementById('edit-id').value     = id;
       document.getElementById('btn-guardar').textContent = '💾  Actualizar Registro';
@@ -987,6 +1004,8 @@ document.getElementById('form-registro').addEventListener('submit', async functi
   const fecha = document.getElementById('input-fecha').value;
   const mmVal = document.getElementById('input-mm').value;
   const tempVal = document.getElementById('input-temp').value;
+  const tempMaxVal = document.getElementById('input-temp-max').value;
+  const tempMinVal = document.getElementById('input-temp-min').value;
   const notas  = document.getElementById('input-notas').value.trim();
   const eId    = document.getElementById('edit-id').value;
 
@@ -995,6 +1014,8 @@ document.getElementById('form-registro').addEventListener('submit', async functi
   }
   const mm   = parseFloat(mmVal);
   const temp = tempVal !== '' ? parseFloat(tempVal) : null;
+  const tempMax = tempMaxVal !== '' ? parseFloat(tempMaxVal) : null;
+  const tempMin = tempMinVal !== '' ? parseFloat(tempMinVal) : null;
 
   if(isNaN(mm) || mm < 0){ showToast('⚠️ Valor de lluvia inválido', true); return; }
 
@@ -1007,6 +1028,8 @@ document.getElementById('form-registro').addEventListener('submit', async functi
     fechaInicio:  prev.toISOString().slice(0,10),
     mmLluvia:     mm,
     temperatura:  temp,
+    tempMax:      tempMax,
+    tempMin:      tempMin,
     notas,
     timestamp:    Date.now()
   };
@@ -1082,7 +1105,7 @@ function renderHistorial(){
         <div class="record-data">
           <div class="record-vals">
             <span class="record-mm">🌧️ ${(r.mmLluvia||0).toFixed(1)} mm</span>
-            ${r.temperatura!=null ? `<span class="record-temp">🌡️ ${r.temperatura.toFixed(1)}°C</span>` : ''}
+            ${r.temperatura!=null ? `<span class="record-temp">🌡️ Med: ${r.temperatura.toFixed(1)}°C | Máx: ${r.tempMax!=null?r.tempMax.toFixed(1):'—'} | Mín: ${r.tempMin!=null?r.tempMin.toFixed(1):'—'}</span>` : ''}
           </div>
           <div class="record-period">Período: 7am ${fmtDateShort(r.fechaInicio)} → 7am ${fmtDateShort(r.fechaLectura)}</div>
           ${r.notas ? `<div class="record-notes">${r.notas}</div>` : ''}
@@ -1286,12 +1309,12 @@ function renderAppsScriptCode(){
   // Encabezados si está vacío
   if(sheet.getLastRow() === 0){
     sheet.appendRow(['ID','Fecha Lectura','Fecha Inicio',
-      'Lluvia (mm)','Temperatura (°C)','Notas',
+      'Lluvia (mm)','Temp. Media (°C)','Temp. Máxima (°C)','Temp. Mínima (°C)','Notas',
       'Operador','Timestamp']);
   }
   sheet.appendRow([
     data.id, data.fechaLectura, data.fechaInicio,
-    data.mmLluvia, data.temperatura, data.notas,
+    data.mmLluvia, data.temperatura, data.tempMax, data.tempMin, data.notas,
     data.operador, new Date(data.timestamp)
   ]);
   return ContentService
@@ -1452,12 +1475,14 @@ function exportCSV(){
   if(!records.length){ showToast('⚠️ No hay datos para exportar', true); return; }
   const sorted = [...records].sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
   const rows = [
-    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temperatura (°C)','Notas','Timestamp']
+    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temp Media (°C)','Temp Máx (°C)','Temp Mín (°C)','Notas','Timestamp']
   ];
   sorted.forEach(r=>rows.push([
     r.id, r.fechaLectura, r.fechaInicio,
     (r.mmLluvia||0).toFixed(1),
     r.temperatura!=null ? r.temperatura.toFixed(1) : '',
+    r.tempMax!=null ? r.tempMax.toFixed(1) : '',
+    r.tempMin!=null ? r.tempMin.toFixed(1) : '',
     '"'+(r.notas||'').replace(/"/g,'""')+'"',
     new Date(r.timestamp).toISOString()
   ]));
