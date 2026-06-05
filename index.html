@@ -1491,6 +1491,9 @@ async function syncRecord(record){
       showToast('☁️ Sincronizado con Google Sheets');
       config.lastSync = Date.now(); saveConfig(config);
       return true;
+    } else {
+      console.error('Google Apps Script error:', json.message);
+      showToast('⚠️ Script Error: ' + (json.message || 'Desconocido'), true);
     }
   } catch(err) {
     console.error('Sync error:', err);
@@ -1509,7 +1512,11 @@ document.getElementById('btn-sync-now').addEventListener('click', async()=>{
     if(res) ok++;
   }
   btn.classList.remove('syncing');
-  showToast(`☁️ ${ok} registros sincronizados`);
+  if(ok > 0){
+    showToast(`☁️ ${ok} registros sincronizados exitosamente`);
+  } else if (records.length > 0) {
+    showToast(`⚠️ 0 registros sincronizados. Revisa la URL o el script.`);
+  }
 });
 
 /* =========================================
