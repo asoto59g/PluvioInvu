@@ -524,6 +524,27 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <!-- Humedad Media -->
+            <div class="form-group">
+              <label class="form-label" for="input-hum">💧 H. Media <span class="lbl-unit">(%)</span></label>
+              <input type="number" id="input-hum" class="form-control"
+                     placeholder="75" min="0" max="100" step="1" />
+            </div>
+            <!-- Humedad Máxima -->
+            <div class="form-group">
+              <label class="form-label" for="input-hum-max">🔺 H. Máxima <span class="lbl-unit">(%)</span></label>
+              <input type="number" id="input-hum-max" class="form-control"
+                     placeholder="90" min="0" max="100" step="1" />
+            </div>
+            <!-- Humedad Mínima -->
+            <div class="form-group">
+              <label class="form-label" for="input-hum-min">🔻 H. Mínima <span class="lbl-unit">(%)</span></label>
+              <input type="number" id="input-hum-min" class="form-control"
+                     placeholder="50" min="0" max="100" step="1" />
+            </div>
+          </div>
+
           <!-- Notas -->
           <div class="form-group">
             <label class="form-label" for="input-notas">📝 Notas <span class="lbl-unit">(opcional)</span></label>
@@ -571,6 +592,7 @@
       <div class="stats-tabs">
         <button class="stats-tab active" data-tab="lluvia">🌧️ Lluvia</button>
         <button class="stats-tab" data-tab="temperatura">🌡️ Temperatura</button>
+        <button class="stats-tab" data-tab="humedad">💧 Humedad</button>
         <button class="stats-tab" data-tab="anual">📅 Anual</button>
       </div>
 
@@ -906,7 +928,8 @@ function renderHome(){
           <div class="last-record-date">Último registro: ${fmtDate(last.fechaLectura)}</div>
           <div class="last-record-vals">
             🌧️ ${last.mmLluvia?.toFixed(1)} mm
-            ${last.temperatura != null ? ` &nbsp;·&nbsp; 🌡️ Media: ${last.temperatura.toFixed(1)}°C (Máx: ${last.tempMax!=null?last.tempMax.toFixed(1):'—'}, Mín: ${last.tempMin!=null?last.tempMin.toFixed(1):'—'})` : ''}
+            ${last.temperatura != null ? ` &nbsp;·&nbsp; 🌡️ ${last.temperatura.toFixed(1)}°C` : ''}
+            ${last.humedad != null ? ` &nbsp;·&nbsp; 💧 ${Math.round(last.humedad)}%` : ''}
           </div>
         </div>
       </div>`;
@@ -977,6 +1000,9 @@ function setupRegistroForm(id=null){
       document.getElementById('input-temp').value  = rec.temperatura ?? '';
       document.getElementById('input-temp-max').value = rec.tempMax ?? '';
       document.getElementById('input-temp-min').value = rec.tempMin ?? '';
+      document.getElementById('input-hum').value      = rec.humedad ?? '';
+      document.getElementById('input-hum-max').value  = rec.humMax ?? '';
+      document.getElementById('input-hum-min').value  = rec.humMin ?? '';
       document.getElementById('input-notas').value = rec.notas || '';
       document.getElementById('edit-id').value     = id;
       document.getElementById('btn-guardar').textContent = '💾  Actualizar Registro';
@@ -1006,6 +1032,9 @@ document.getElementById('form-registro').addEventListener('submit', async functi
   const tempVal = document.getElementById('input-temp').value;
   const tempMaxVal = document.getElementById('input-temp-max').value;
   const tempMinVal = document.getElementById('input-temp-min').value;
+  const humVal     = document.getElementById('input-hum').value;
+  const humMaxVal  = document.getElementById('input-hum-max').value;
+  const humMinVal  = document.getElementById('input-hum-min').value;
   const notas  = document.getElementById('input-notas').value.trim();
   const eId    = document.getElementById('edit-id').value;
 
@@ -1016,6 +1045,9 @@ document.getElementById('form-registro').addEventListener('submit', async functi
   const temp = tempVal !== '' ? parseFloat(tempVal) : null;
   const tempMax = tempMaxVal !== '' ? parseFloat(tempMaxVal) : null;
   const tempMin = tempMinVal !== '' ? parseFloat(tempMinVal) : null;
+  const hum     = humVal !== '' ? parseFloat(humVal) : null;
+  const humMax  = humMaxVal !== '' ? parseFloat(humMaxVal) : null;
+  const humMin  = humMinVal !== '' ? parseFloat(humMinVal) : null;
 
   if(isNaN(mm) || mm < 0){ showToast('⚠️ Valor de lluvia inválido', true); return; }
 
@@ -1030,6 +1062,9 @@ document.getElementById('form-registro').addEventListener('submit', async functi
     temperatura:  temp,
     tempMax:      tempMax,
     tempMin:      tempMin,
+    humedad:      hum,
+    humMax:       humMax,
+    humMin:       humMin,
     notas,
     timestamp:    Date.now()
   };
@@ -1106,6 +1141,7 @@ function renderHistorial(){
           <div class="record-vals">
             <span class="record-mm">🌧️ ${(r.mmLluvia||0).toFixed(1)} mm</span>
             ${r.temperatura!=null ? `<span class="record-temp">🌡️ Med: ${r.temperatura.toFixed(1)}°C | Máx: ${r.tempMax!=null?r.tempMax.toFixed(1):'—'} | Mín: ${r.tempMin!=null?r.tempMin.toFixed(1):'—'}</span>` : ''}
+            ${r.humedad!=null ? `<span class="record-temp" style="color:#48cae4">💧 Med: ${Math.round(r.humedad)}% | Máx: ${r.humMax!=null?Math.round(r.humMax):'—'} | Mín: ${r.humMin!=null?Math.round(r.humMin):'—'}</span>` : ''}
           </div>
           <div class="record-period">Período: 7am ${fmtDateShort(r.fechaInicio)} → 7am ${fmtDateShort(r.fechaLectura)}</div>
           ${r.notas ? `<div class="record-notes">${r.notas}</div>` : ''}
@@ -1221,7 +1257,7 @@ function renderStats(){
       },
       options: chartOptions('mm')
     });
-  } else {
+  } else if (statsTab==='temperatura') {
     const dataMed = monthRecs.map(r=>r.temperatura??null);
     const dataMax = monthRecs.map(r=>r.tempMax??null);
     const dataMin = monthRecs.map(r=>r.tempMin??null);
@@ -1258,6 +1294,43 @@ function renderStats(){
       },
       options: chartOptions('°C', true)
     });
+  } else if (statsTab==='humedad') {
+    const dataMed = monthRecs.map(r=>r.humedad??null);
+    const dataMax = monthRecs.map(r=>r.humMax??null);
+    const dataMin = monthRecs.map(r=>r.humMin??null);
+    mainChart = new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {
+            label:'H. Media',
+            data: dataMed,
+            borderColor:'#48cae4',
+            backgroundColor:'rgba(72,202,228,0.1)',
+            pointBackgroundColor:'#48cae4',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'H. Máxima',
+            data: dataMax,
+            borderColor:'#90e0ef',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#90e0ef',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'H. Mínima',
+            data: dataMin,
+            borderColor:'#0077b6',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#0077b6',
+            tension:0.4, fill:false, spanGaps:true,
+          }
+        ]
+      },
+      options: chartOptions('%', true)
+    });
   }
 }
 
@@ -1282,7 +1355,13 @@ function chartOptions(unit, showLegend = false){
     },
     scales:{
       x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}} },
-      y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}}, beginAtZero:true }
+      y:{ 
+        grid:{color:'rgba(255,255,255,0.04)'}, 
+        ticks:{color:'#3d6e8a',font:{size:10}}, 
+        beginAtZero: unit !== '°C',
+        min: unit === '°C' ? 15 : undefined,
+        max: unit === '%' ? 100 : undefined
+      }
     }
   };
 }
@@ -1337,12 +1416,14 @@ function renderAppsScriptCode(){
   // Encabezados si está vacío
   if(sheet.getLastRow() === 0){
     sheet.appendRow(['ID','Fecha Lectura','Fecha Inicio',
-      'Lluvia (mm)','Temp. Media (°C)','Temp. Máxima (°C)','Temp. Mínima (°C)','Notas',
+      'Lluvia (mm)','Temp. Media (°C)','Temp. Máxima (°C)','Temp. Mínima (°C)',
+      'Humedad Media (%)','Humedad Máxima (%)','Humedad Mínima (%)','Notas',
       'Operador','Timestamp']);
   }
   sheet.appendRow([
     data.id, data.fechaLectura, data.fechaInicio,
-    data.mmLluvia, data.temperatura, data.tempMax, data.tempMin, data.notas,
+    data.mmLluvia, data.temperatura, data.tempMax, data.tempMin, 
+    data.humedad, data.humMax, data.humMin, data.notas,
     data.operador, new Date(data.timestamp)
   ]);
   return ContentService
@@ -1503,7 +1584,7 @@ function exportCSV(){
   if(!records.length){ showToast('⚠️ No hay datos para exportar', true); return; }
   const sorted = [...records].sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
   const rows = [
-    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temp Media (°C)','Temp Máx (°C)','Temp Mín (°C)','Notas','Timestamp']
+    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temp Media (°C)','Temp Máx (°C)','Temp Mín (°C)','Hum Media (%)','Hum Máx (%)','Hum Mín (%)','Notas','Timestamp']
   ];
   sorted.forEach(r=>rows.push([
     r.id, r.fechaLectura, r.fechaInicio,
