@@ -97,7 +97,7 @@ function doPost(e) {
     // Formatear la columna de fechas automáticamente
     var lastRow = sheet.getLastRow();
     sheet.getRange(lastRow, 2, 1, 2).setNumberFormat('yyyy-mm-dd');
-    sheet.getRange(lastRow, 8, 1, 2).setNumberFormat('dd/mm/yyyy HH:mm');
+    sheet.getRange(lastRow, 13, 1, 2).setNumberFormat('dd/mm/yyyy HH:mm');
 
     // Colorear filas alternadas
     if (lastRow % 2 === 0) {
