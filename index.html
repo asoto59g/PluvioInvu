@@ -1222,32 +1222,60 @@ function renderStats(){
       options: chartOptions('mm')
     });
   } else {
-    const data = monthRecs.map(r=>r.temperatura??null);
+    const dataMed = monthRecs.map(r=>r.temperatura??null);
+    const dataMax = monthRecs.map(r=>r.tempMax??null);
+    const dataMin = monthRecs.map(r=>r.tempMin??null);
     mainChart = new Chart(ctx,{
       type:'line',
       data:{
         labels,
-        datasets:[{
-          label:'Temperatura (°C)',
-          data,
-          borderColor:'#ffd166',
-          backgroundColor:'rgba(255,209,102,0.1)',
-          pointBackgroundColor:'#ffd166',
-          tension:0.4, fill:true, spanGaps:true,
-        }]
+        datasets:[
+          {
+            label:'T. Media',
+            data: dataMed,
+            borderColor:'#ffd166',
+            backgroundColor:'rgba(255,209,102,0.1)',
+            pointBackgroundColor:'#ffd166',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'T. Máxima',
+            data: dataMax,
+            borderColor:'#ef476f',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#ef476f',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'T. Mínima',
+            data: dataMin,
+            borderColor:'#00b4d8',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#00b4d8',
+            tension:0.4, fill:false, spanGaps:true,
+          }
+        ]
       },
-      options: chartOptions('°C')
+      options: chartOptions('°C', true)
     });
   }
 }
 
-function chartOptions(unit){
+function chartOptions(unit, showLegend = false){
   return {
     responsive:true, maintainAspectRatio:false,
     plugins:{
-      legend:{display:false},
+      legend:{
+        display:showLegend, 
+        labels:{color:'#7bb8d4', boxWidth:12, font:{size:11, family:'Inter'}}
+      },
       tooltip:{
-        callbacks:{ label: c=>c.parsed.y!=null?c.parsed.y.toFixed(1)+' '+unit:'' },
+        callbacks:{ 
+          label: c => {
+            const val = c.parsed.y;
+            return val != null ? (c.dataset.label + ': ' + val.toFixed(1) + ' ' + unit) : '';
+          }
+        },
         backgroundColor:'rgba(6,13,31,0.9)', borderColor:'rgba(0,180,216,0.3)',
         borderWidth:1, titleColor:'#90e0ef', bodyColor:'#e0f4ff',
       }
