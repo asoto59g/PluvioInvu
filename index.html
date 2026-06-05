@@ -904,7 +904,7 @@ function renderHome(){
 
   // Stats for current month
   const cm = currentMonthStr();
-  const monthRecs = records.filter(r => getMonthYear(r.fechaLectura) === cm);
+  const monthRecs = records.filter(r => getMonthYear(r.fechaInicio) === cm);
 
   const totalMm   = monthRecs.reduce((s,r)=> s + (r.mmLluvia||0), 0);
   const temps     = monthRecs.filter(r => r.temperatura != null && r.temperatura !== '');
@@ -920,7 +920,7 @@ function renderHome(){
   // Last record
   const box = document.getElementById('home-last-record');
   if(records.length){
-    const last = [...records].sort((a,b)=> b.fechaLectura.localeCompare(a.fechaLectura))[0];
+    const last = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio))[0];
     box.innerHTML = `
       <div class="last-record">
         <span class="last-record-icon">✅</span>
@@ -943,10 +943,10 @@ function renderHome(){
 
 function renderMiniChart(){
   const cm = currentMonthStr();
-  const monthRecs = records.filter(r => getMonthYear(r.fechaLectura) === cm)
-    .sort((a,b)=> a.fechaLectura.localeCompare(b.fechaLectura));
+  const monthRecs = records.filter(r => getMonthYear(r.fechaInicio) === cm)
+    .sort((a,b)=> a.fechaInicio.localeCompare(b.fechaInicio));
 
-  const labels = monthRecs.map(r => parseDate(r.fechaLectura).getDate());
+  const labels = monthRecs.map(r => parseDate(r.fechaInicio).getDate());
   const data   = monthRecs.map(r => r.mmLluvia || 0);
 
   if(miniChart) miniChart.destroy();
@@ -1104,11 +1104,11 @@ let histFilter = 'all';
 let deleteTarget = null;
 
 function renderHistorial(){
-  const sorted = [...records].sort((a,b)=> b.fechaLectura.localeCompare(a.fechaLectura));
+  const sorted = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio));
   document.getElementById('hist-count').textContent = records.length;
 
   // Build month filters
-  const months = [...new Set(records.map(r=>getMonthYear(r.fechaLectura)))].sort((a,b)=>b.localeCompare(a));
+  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort((a,b)=>b.localeCompare(a));
   const filterRow = document.getElementById('filter-row');
   filterRow.innerHTML = `<button class="filter-btn ${histFilter==='all'?'active':''}" data-filter="all">Todos</button>`;
   months.forEach(m=>{
@@ -1119,7 +1119,7 @@ function renderHistorial(){
   );
 
   // Filter records
-  const filtered = histFilter==='all' ? sorted : sorted.filter(r=>getMonthYear(r.fechaLectura)===histFilter);
+  const filtered = histFilter==='all' ? sorted : sorted.filter(r=>getMonthYear(r.fechaInicio)===histFilter);
 
   const list = document.getElementById('historial-list');
   if(!filtered.length){
@@ -1190,7 +1190,7 @@ function populateMonthSelector(){
   // All unique months from records, sorted newest first, plus current month always present
   const allMonths = [...new Set([
     currentMonthStr(),
-    ...records.map(r => getMonthYear(r.fechaLectura))
+    ...records.map(r => getMonthYear(r.fechaInicio))
   ])].sort((a,b)=>b.localeCompare(a));
 
   sel.innerHTML = allMonths.map(m => {
@@ -1218,8 +1218,8 @@ function renderStats(){
   populateMonthSelector();
 
   const cm = selectedStatsMonth;
-  const monthRecs = records.filter(r=>getMonthYear(r.fechaLectura)===cm)
-    .sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
+  const monthRecs = records.filter(r=>getMonthYear(r.fechaInicio)===cm)
+    .sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
 
   // Summary stats
   const totalMm = monthRecs.reduce((s,r)=>s+(r.mmLluvia||0),0);
@@ -1239,7 +1239,7 @@ function renderStats(){
 
   if(mainChart) mainChart.destroy();
   const ctx = document.getElementById('main-chart').getContext('2d');
-  const labels = monthRecs.map(r => parseDate(r.fechaLectura).getDate());
+  const labels = monthRecs.map(r => parseDate(r.fechaInicio).getDate());
 
   if(statsTab==='lluvia'){
     const data = monthRecs.map(r=>r.mmLluvia||0);
@@ -1367,14 +1367,14 @@ function chartOptions(unit, showLegend = false){
 }
 
 function renderAnnualTable(){
-  const months = [...new Set(records.map(r=>getMonthYear(r.fechaLectura)))].sort();
+  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort();
   const tbody = document.getElementById('annual-tbody');
   if(!months.length){
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);padding:20px">Sin datos</td></tr>';
     return;
   }
   tbody.innerHTML = months.map(m=>{
-    const recs = records.filter(r=>getMonthYear(r.fechaLectura)===m);
+    const recs = records.filter(r=>getMonthYear(r.fechaInicio)===m);
     const total = recs.reduce((s,r)=>s+(r.mmLluvia||0),0);
     const dias  = recs.filter(r=>r.mmLluvia>0).length;
     const temps = recs.filter(r=>r.temperatura!=null && r.temperatura!=='');
