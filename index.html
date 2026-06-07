@@ -1491,7 +1491,7 @@ async function syncRecord(record){
     
     const resp = await fetch(config.scriptUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
 
@@ -1644,6 +1644,11 @@ function showToast(msg, isError=false){
 /* =========================================
    INIT
    ========================================= */
+if(window.location.protocol === 'file:'){
+  showToast('⚠️ No abra este archivo como file://. Use un servidor local (http://localhost).', true);
+  console.warn('La app se cargó desde file:// y fetch puede fallar. Inicie un servidor local o use Live Server.');
+}
+
 renderHome();
 scheduleReminderCheck();
 
