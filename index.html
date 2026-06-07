@@ -1478,26 +1478,42 @@ document.getElementById('btn-test-sync').addEventListener('click', async()=>{
    GOOGLE SHEETS SYNC
    ========================================= */
 async function syncRecord(record){
-  if(!config.scriptUrl) return false;
+  if(!config.scriptUrl) {
+    console.error('❌ scriptUrl está vacío');
+    showToast('⚠️ Configura la URL de Google Sheets en ⚙️', true);
+    return false;
+  }
+
   try {
     const payload = { ...record, operador: config.operador };
+    console.log('📤 Enviando a:', config.scriptUrl);
+    console.log('📦 Payload:', payload);
+    
     const resp = await fetch(config.scriptUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+
     const json = await resp.json();
-    if(json.status==='ok'){
+    console.log('✅ Respuesta del servidor:', json);
+
+    if(json.status === 'ok'){
       showToast('☁️ Sincronizado con Google Sheets');
-      config.lastSync = Date.now(); saveConfig(config);
+      config.lastSync = Date.now();
+      saveConfig(config);
       return true;
     } else {
-      console.error('Google Apps Script error:', json.message);
-      showToast('⚠️ Script Error: ' + (json.message || 'Desconocido'), true);
+      console.error('❌ Google Apps Script error:', json.message);
+      showToast('⚠️ Error: ' + (json.message || 'Desconocido'), true);
     }
   } catch(err) {
-    console.error('Sync error:', err);
-    showToast('⚠️ Error al sincronizar: '+err.message, true);
+    console.error('❌ Sync error:', err);
+    showToast('⚠️ Error: ' + err.message + '. Revisa la consola (F12)', true);
   }
   return false;
 }

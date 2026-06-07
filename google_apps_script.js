@@ -53,6 +53,11 @@ var HEADERS = [
 // ============================================================
 function doPost(e) {
   try {
+    // Validar que el SPREADSHEET_ID esté configurado
+    if (!SPREADSHEET_ID || SPREADSHEET_ID.includes('http')) {
+      throw new Error('SPREADSHEET_ID no configurado correctamente. Debe ser solo el ID (sin URL)');
+    }
+
     var data = JSON.parse(e.postData.contents);
 
     var ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -105,10 +110,11 @@ function doPost(e) {
     }
 
     return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok', row: lastRow }))
+      .createTextOutput(JSON.stringify({ status: 'ok', row: lastRow, message: 'Registro guardado exitosamente' }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
+    Logger.log('ERROR en doPost: ' + err.toString());
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
