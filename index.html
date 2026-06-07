@@ -1483,7 +1483,7 @@ async function syncRecord(record){
     const payload = { ...record, operador: config.operador };
     const resp = await fetch(config.scriptUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     const json = await resp.json();
