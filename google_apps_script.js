@@ -23,7 +23,7 @@
  */
 
 // ⬇️ CAMBIAR ESTE VALOR POR EL ID DE TU HOJA DE CÁLCULO
-var SPREADSHEET_ID = 'https://docs.google.com/spreadsheets/d/1cpADdyuZTH-zxJq9DA8D9oxrylalOxEWvDkV4lIwiOo/edit';
+var SPREADSHEET_ID = '1J25tcSTiHlOtEuEGtyN-WFsHvsqnGLnPnrtaW03c6Q4';
 
 // Nombre de la hoja dentro del spreadsheet
 var SHEET_NAME = 'Hoja 1';
