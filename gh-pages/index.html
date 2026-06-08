@@ -489,7 +489,12 @@ function parseCSVtoRecords(csv){
   const fechaLecturaIdx = idxOf('fecha lect');
   const fechaInicioIdx = headers.findIndex(h=>h.includes('fecha inicio')||h.includes('periodo'));
   const mmIdx = headers.findIndex(h=>h.includes('lluv'));
-  const tempIdx = headers.findIndex(h=>h.includes('temp'));
+  const tempIdx = headers.findIndex(h=>h.includes('temp') && !h.includes('máx') && !h.includes('max') && !h.includes('mín') && !h.includes('min'));
+  const tempMaxIdx = headers.findIndex(h=>h.includes('temp') && (h.includes('máx')||h.includes('max')));
+  const tempMinIdx = headers.findIndex(h=>h.includes('temp') && (h.includes('mín')||h.includes('min')));
+  const humIdx = headers.findIndex(h=>h.includes('humedad') && !h.includes('máx') && !h.includes('max') && !h.includes('mín') && !h.includes('min'));
+  const humMaxIdx = headers.findIndex(h=>h.includes('humedad') && (h.includes('máx')||h.includes('max')));
+  const humMinIdx = headers.findIndex(h=>h.includes('humedad') && (h.includes('mín')||h.includes('min')));
   const notasIdx = headers.findIndex(h=>h.includes('nota'));
   const tsIdx = headers.findIndex(h=>h.includes('timestamp')||h.includes('time'));
   return lines.slice(1).map(line=>{
@@ -500,7 +505,11 @@ function parseCSVtoRecords(csv){
       fechaInicio: fechaInicioIdx>-1 ? (cols[fechaInicioIdx]||'') : (cols[2]||''),
       mmLluvia: mmIdx>-1 ? parseFloat(cols[mmIdx])||0 : parseFloat(cols[3])||0,
       temperatura: tempIdx>-1 && cols[tempIdx]!=='"' && cols[tempIdx]!=='' ? parseFloat(cols[tempIdx]) : null,
-      tempMax: null, tempMin: null, humedad: null, humMax: null, humMin: null,
+      tempMax: tempMaxIdx>-1 && cols[tempMaxIdx]!=='' ? parseFloat(cols[tempMaxIdx]) : null,
+      tempMin: tempMinIdx>-1 && cols[tempMinIdx]!=='' ? parseFloat(cols[tempMinIdx]) : null,
+      humedad: humIdx>-1 && cols[humIdx]!=='' ? parseFloat(cols[humIdx]) : null,
+      humMax: humMaxIdx>-1 && cols[humMaxIdx]!=='' ? parseFloat(cols[humMaxIdx]) : null,
+      humMin: humMinIdx>-1 && cols[humMinIdx]!=='' ? parseFloat(cols[humMinIdx]) : null,
       notas: notasIdx>-1 ? (cols[notasIdx]||'') : (cols[5]||''),
       timestamp: tsIdx>-1 && cols[tsIdx] ? Date.parse(cols[tsIdx]) : (cols[6]?Date.parse(cols[6]):Date.now())
     };
@@ -851,75 +860,83 @@ function renderStats(){
     const dataMed = monthRecs.map(r=>r.temperatura??null);
     const dataMax = monthRecs.map(r=>r.tempMax??null);
     const dataMin = monthRecs.map(r=>r.tempMin??null);
+    const hasMaxMin = monthRecs.some(r=>r.tempMax!=null || r.tempMin!=null);
+    
+    const datasets = [
+      {
+        label:'T. Media',
+        data: dataMed,
+        borderColor:'#ffd166',
+        backgroundColor:'rgba(255,209,102,0.1)',
+        pointBackgroundColor:'#ffd166',
+        tension:0.4, fill:false, spanGaps:true,
+      }
+    ];
+    if(hasMaxMin){
+      datasets.push(
+        {
+          label:'T. Máxima',
+          data: dataMax,
+          borderColor:'#ef476f',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#ef476f',
+          tension:0.4, fill:false, spanGaps:true,
+        },
+        {
+          label:'T. Mínima',
+          data: dataMin,
+          borderColor:'#00b4d8',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#00b4d8',
+          tension:0.4, fill:false, spanGaps:true,
+        }
+      );
+    }
     mainChart = new Chart(ctx,{
       type:'line',
-      data:{
-        labels,
-        datasets:[
-          {
-            label:'T. Media',
-            data: dataMed,
-            borderColor:'#ffd166',
-            backgroundColor:'rgba(255,209,102,0.1)',
-            pointBackgroundColor:'#ffd166',
-            tension:0.4, fill:false, spanGaps:true,
-          },
-          {
-            label:'T. Máxima',
-            data: dataMax,
-            borderColor:'#ef476f',
-            backgroundColor:'transparent',
-            pointBackgroundColor:'#ef476f',
-            tension:0.4, fill:false, spanGaps:true,
-          },
-          {
-            label:'T. Mínima',
-            data: dataMin,
-            borderColor:'#00b4d8',
-            backgroundColor:'transparent',
-            pointBackgroundColor:'#00b4d8',
-            tension:0.4, fill:false, spanGaps:true,
-          }
-        ]
-      },
-      options: chartOptions('°C', true)
+      data:{ labels, datasets },
+      options: chartOptions('°C', hasMaxMin)
     });
   } else if (statsTab==='humedad') {
     const dataMed = monthRecs.map(r=>r.humedad??null);
     const dataMax = monthRecs.map(r=>r.humMax??null);
     const dataMin = monthRecs.map(r=>r.humMin??null);
+    const hasMaxMin = monthRecs.some(r=>r.humMax!=null || r.humMin!=null);
+    
+    const datasets = [
+      {
+        label:'H. Media',
+        data: dataMed,
+        borderColor:'#48cae4',
+        backgroundColor:'rgba(72,202,228,0.1)',
+        pointBackgroundColor:'#48cae4',
+        tension:0.4, fill:false, spanGaps:true,
+      }
+    ];
+    if(hasMaxMin){
+      datasets.push(
+        {
+          label:'H. Máxima',
+          data: dataMax,
+          borderColor:'#90e0ef',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#90e0ef',
+          tension:0.4, fill:false, spanGaps:true,
+        },
+        {
+          label:'H. Mínima',
+          data: dataMin,
+          borderColor:'#0077b6',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#0077b6',
+          tension:0.4, fill:false, spanGaps:true,
+        }
+      );
+    }
     mainChart = new Chart(ctx,{
       type:'line',
-      data:{
-        labels,
-        datasets:[
-          {
-            label:'H. Media',
-            data: dataMed,
-            borderColor:'#48cae4',
-            backgroundColor:'rgba(72,202,228,0.1)',
-            pointBackgroundColor:'#48cae4',
-            tension:0.4, fill:false, spanGaps:true,
-          },
-          {
-            label:'H. Máxima',
-            data: dataMax,
-            borderColor:'#90e0ef',
-            backgroundColor:'transparent',
-            pointBackgroundColor:'#90e0ef',
-            tension:0.4, fill:false, spanGaps:true,
-          },
-          {
-            label:'H. Mínima',
-            data: dataMin,
-            borderColor:'#0077b6',
-            backgroundColor:'transparent',
-            pointBackgroundColor:'#0077b6',
-            tension:0.4, fill:false, spanGaps:true,
-          }
-        ]
-      },
-      options: chartOptions('%', true)
+      data:{ labels, datasets },
+      options: chartOptions('%', hasMaxMin)
     });
   }
 }
