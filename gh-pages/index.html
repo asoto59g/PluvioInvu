@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pluviómetro – Visor de Datos | Liberia Centro, Guanacaste</title>
+  <meta name="description" content="Visor de datos de precipitación y temperatura del pluviómetro INVU en Liberia Centro, Guanacaste, Costa Rica." />
+  <meta property="og:title" content="Pluviómetro INVU — Visor de Datos" />
+  <meta property="og:description" content="Visualiza registros de precipitación y temperatura de Liberia Centro, Guanacaste" />
+  <meta property="og:image" content="./preview.jpg" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* ==================== RESET & BASE ==================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #060d1f;
+      --bg2:       #0a1530;
+      --surface:   rgba(10, 24, 50, 0.75);
+      --border:    rgba(0, 180, 216, 0.18);
+      --primary:   #00b4d8;
+      --primary2:  #0077b6;
+      --accent:    #90e0ef;
+      --danger:    #ef476f;
+      --success:   #06d6a0;
+      --warn:      #ffd166;
+      --text:      #e0f4ff;
+      --text2:     #7bb8d4;
+      --text3:     #3d6e8a;
+      --card-bg:   rgba(0, 180, 216, 0.05);
+      --blur:      blur(18px);
+      --r:         16px;
+      --r2:        10px;
+      --shadow:    0 8px 32px rgba(0,0,0,0.45);
+      --trans:     0.25s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ==================== RAIN BACKGROUND ==================== */
+    #rain-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; opacity: 0.18;
+    }
+
+    /* ==================== GRADIENT ORBS ==================== */
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(80px); opacity: 0.25; pointer-events: none; z-index: 0;
+    }
+    .orb1 { width: 500px; height: 500px; background: #0077b6; top: -150px; left: -150px; }
+    .orb2 { width: 400px; height: 400px; background: #023e8a; bottom: -100px; right: -100px; }
+    .orb3 { width: 300px; height: 300px; background: #00b4d8; top: 40%; left: 60%; }
+
+    /* ==================== LAYOUT ==================== */
+    .app-wrapper { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ==================== HEADER ==================== */
+    header {
+      padding: 18px 24px;
+      background: rgba(6, 13, 31, 0.8);
+      backdrop-filter: var(--blur);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-icon { font-size: 28px; line-height: 1; }
+    .header-title { font-size: 15px; font-weight: 700; color: var(--primary); letter-spacing: 0.3px; }
+    .header-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--card-bg);
+      color: var(--text2); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; font-size: 16px;
+      transition: var(--trans); backdrop-filter: var(--blur);
+    }
+    .icon-btn:hover { color: var(--primary); border-color: var(--primary); background: rgba(0,180,216,0.1); }
+
+    /* ==================== NAV TABS ==================== */
+    nav {
+      display: flex; gap: 4px; padding: 10px 20px;
+      background: rgba(6, 13, 31, 0.6); backdrop-filter: var(--blur);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-btn {
+      flex: 1; padding: 9px 6px; border: none; background: transparent;
+      color: var(--text3); font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      border-radius: var(--r2); transition: var(--trans);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .nav-btn .nav-icon { font-size: 18px; }
+    .nav-btn:hover { color: var(--accent); background: rgba(0,180,216,0.07); }
+    .nav-btn.active { color: var(--primary); background: rgba(0,180,216,0.12); }
+    .nav-btn.active .nav-icon { filter: drop-shadow(0 0 6px var(--primary)); }
+
+    /* ==================== MAIN CONTENT ==================== */
+    main { flex: 1; padding: 20px 16px 80px; max-width: 540px; margin: 0 auto; width: 100%; }
+
+    /* ==================== SCREENS ==================== */
+    .screen { display: none; animation: fadeIn 0.3s ease; }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ==================== CARDS ==================== */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: var(--trans);
+    }
+    .card:hover { border-color: rgba(0,180,216,0.3); }
+    .card + .card { margin-top: 14px; }
+
+    /* ==================== HOME SCREEN ==================== */
+    .period-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,180,216,0.1); border: 1px solid var(--border);
+      color: var(--accent); font-size: 11px; font-weight: 600;
+      padding: 5px 12px; border-radius: 20px; letter-spacing: 0.5px;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .period-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero-date { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+    .hero-period {
+      font-size: 14px; font-weight: 600; color: var(--text);
+      padding: 10px 14px; background: rgba(0,180,216,0.08);
+      border-radius: var(--r2); border-left: 3px solid var(--primary);
+      margin-bottom: 18px;
+    }
+    .hero-period span { color: var(--primary); }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .stat-mini {
+      background: rgba(0,180,216,0.06); border: 1px solid var(--border);
+      border-radius: var(--r2); padding: 14px 12px; text-align: center;
+    }
+    .stat-mini-val { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; }
+    .stat-mini-val.temp { color: var(--warn); }
+    .stat-mini-lbl { font-size: 10px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+    .last-record {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      background: rgba(6,214,160,0.06); border: 1px solid rgba(6,214,160,0.15);
+      border-radius: var(--r2); margin-top: 12px;
+    }
+    .last-record-icon { font-size: 24px; }
+    .last-record-info { flex: 1; }
+    .last-record-date { font-size: 11px; color: var(--text2); }
+    .last-record-vals { font-size: 14px; font-weight: 700; color: var(--success); }
+    .no-record { text-align: center; padding: 12px; color: var(--text3); font-size: 13px; }
+
+    /* ==================== HISTORIAL ==================== */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .section-title { font-size: 17px; font-weight: 700; }
+    .badge-count { background: rgba(0,180,216,0.15); color: var(--primary); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+    .filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--text2); font-size: 12px;
+      font-family: 'Inter', sans-serif; cursor: pointer; transition: var(--trans);
+    }
+    .filter-btn.active, .filter-btn:hover { background: rgba(0,180,216,0.12); border-color: var(--primary); color: var(--primary); }
+
+    .record-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px;
+      backdrop-filter: var(--blur); transition: var(--trans);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .record-card:hover { border-color: rgba(0,180,216,0.3); transform: translateX(2px); }
+    .record-day {
+      min-width: 50px; text-align: center;
+      background: rgba(0,180,216,0.1); border-radius: var(--r2);
+      padding: 8px 4px;
+    }
+    .record-day-num { font-size: 22px; font-weight: 800; color: var(--primary); line-height: 1; }
+    .record-day-mon { font-size: 10px; color: var(--text2); text-transform: uppercase; }
+    .record-data { flex: 1; }
+    .record-vals { display: flex; gap: 14px; align-items: center; }
+    .record-mm { font-size: 16px; font-weight: 700; color: var(--accent); }
+    .record-temp { font-size: 14px; font-weight: 600; color: var(--warn); }
+    .record-period { font-size: 10px; color: var(--text3); margin-top: 3px; }
+    .record-notes { font-size: 11px; color: var(--text3); margin-top: 3px; font-style: italic; }
+
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-text { color: var(--text3); font-size: 14px; }
+
+    /* ==================== ESTADÍSTICAS ==================== */
+    .month-selector-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    }
+    .month-selector-label { font-size: 12px; color: var(--text2); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
+    .month-selector {
+      flex: 1; padding: 9px 14px;
+      background: rgba(0,180,216,0.07); border: 1px solid var(--border);
+      border-radius: var(--r2); color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      outline: none; cursor: pointer; transition: var(--trans);
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300b4d8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      padding-right: 34px;
+    }
+    .month-selector:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,180,216,0.12); }
+    .month-selector option { background: #0a1530; color: var(--text); }
+    .stats-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .stats-tab {
+      flex: 1; padding: 8px; text-align: center;
+      border: 1px solid var(--border); border-radius: var(--r2);
+      background: transparent; color: var(--text2);
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      font-weight: 600; cursor: pointer; transition: var(--trans);
+    }
+    .stats-tab.active { background: rgba(0,180,216,0.12); border-color: var(--primary); color: var(--primary); }
+
+    .chart-container { position: relative; height: 220px; }
+    .stats-summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+    .summary-stat {
+      background: rgba(0,180,216,0.05); border: 1px solid var(--border);
+      border-radius: var(--r2); padding: 14px; text-align: center;
+    }
+    .summary-stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .summary-stat-val.t { color: var(--warn); }
+    .summary-stat-lbl { font-size: 10px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .annual-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    .annual-table th { padding: 8px 6px; color: var(--text2); text-align: center; border-bottom: 1px solid var(--border); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .annual-table td { padding: 8px 6px; text-align: center; border-bottom: 1px solid rgba(0,180,216,0.06); }
+    .annual-table tr:hover td { background: rgba(0,180,216,0.04); }
+    .annual-table .mm-cell { color: var(--primary); font-weight: 700; }
+    .annual-table .temp-cell { color: var(--warn); font-weight: 600; }
+
+    /* ==================== TOAST ==================== */
+    #toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(6,214,160,0.15); border: 1px solid rgba(6,214,160,0.3);
+      backdrop-filter: var(--blur); color: var(--success);
+      padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 600;
+      opacity: 0; transition: all 0.35s ease; z-index: 9999; white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.error { background: rgba(239,71,111,0.15); border-color: rgba(239,71,111,0.3); color: var(--danger); }
+
+    /* ==================== SCROLLBAR ==================== */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ==================== FOOTER NAV ==================== */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(6,13,31,0.92); backdrop-filter: var(--blur);
+      border-top: 1px solid var(--border); z-index: 100;
+      display: flex; justify-content: space-around; padding: 8px 10px;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (min-width: 600px) {
+      main { padding: 24px 24px 90px; }
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Rain Canvas -->
+<canvas id="rain-canvas"></canvas>
+
+<!-- Background Orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="app-wrapper">
+  <!-- HEADER -->
+  <header>
+    <div class="header-brand">
+      <span class="header-icon">🌧️</span>
+      <div>
+        <div class="header-title">Pluviómetro INVU — Visor</div>
+        <div class="header-sub">Liberia Centro · Guanacaste · Costa Rica</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btn-export" title="Exportar CSV">📥</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- ====== SCREEN: INICIO ====== -->
+    <section id="screen-home" class="screen active">
+      <div class="card" style="margin-bottom:14px">
+        <div class="period-badge"><span class="dot"></span>Período de Medición</div>
+        <div class="hero-date" id="home-date-label"></div>
+        <div class="hero-period" id="home-period-text"></div>
+
+        <div class="stats-grid" id="home-stats-grid">
+          <div class="stat-mini">
+            <div class="stat-mini-val" id="stat-month-mm">—</div>
+            <div class="stat-mini-lbl">mm este mes</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-val temp" id="stat-avg-temp">—</div>
+            <div class="stat-mini-lbl">°C promedio mes</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-val" id="stat-days-rain">—</div>
+            <div class="stat-mini-lbl">días con lluvia</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-val" id="stat-max-day">—</div>
+            <div class="stat-mini-lbl">mm máx. diario</div>
+          </div>
+        </div>
+
+        <div id="home-last-record"></div>
+      </div>
+
+      <!-- Monthly preview mini chart -->
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2)">📊 Precipitación — Mes Actual</div>
+        <div style="position:relative;height:130px">
+          <canvas id="mini-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== SCREEN: HISTORIAL ====== -->
+    <section id="screen-historial" class="screen">
+      <div class="section-header">
+        <div class="section-title">📋 Historial</div>
+        <span class="badge-count" id="hist-count">0</span>
+      </div>
+
+      <div class="filter-row" id="filter-row">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <!-- months injected dynamically -->
+      </div>
+
+      <div id="historial-list"></div>
+    </section>
+
+    <!-- ====== SCREEN: ESTADÍSTICAS ====== -->
+    <section id="screen-stats" class="screen">
+      <div class="section-header">
+        <div class="section-title">📈 Estadísticas</div>
+      </div>
+
+      <!-- Month picker -->
+      <div class="month-selector-row" id="month-selector-row">
+        <span class="month-selector-label">📅 Mes</span>
+        <select class="month-selector" id="stats-month-select"></select>
+      </div>
+
+      <div class="stats-tabs">
+        <button class="stats-tab active" data-tab="lluvia">🌧️ Lluvia</button>
+        <button class="stats-tab" data-tab="temperatura">🌡️ Temperatura</button>
+        <button class="stats-tab" data-tab="humedad">💧 Humedad</button>
+        <button class="stats-tab" data-tab="anual">📅 Anual</button>
+      </div>
+
+      <!-- Charts -->
+      <div class="card" id="stats-chart-card">
+        <div class="chart-container">
+          <canvas id="main-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Summary grid -->
+      <div class="stats-summary-grid" id="stats-summary-grid">
+        <div class="summary-stat"><div class="summary-stat-val" id="ss-total-mm">—</div><div class="summary-stat-lbl">Total mm (mes)</div></div>
+        <div class="summary-stat"><div class="summary-stat-val t" id="ss-avg-temp">—</div><div class="summary-stat-lbl">Temp. promedio</div></div>
+        <div class="summary-stat"><div class="summary-stat-val" id="ss-max-mm">—</div><div class="summary-stat-lbl">Máx. diario mm</div></div>
+        <div class="summary-stat"><div class="summary-stat-val t" id="ss-max-temp">—</div><div class="summary-stat-lbl">Temp. máxima</div></div>
+      </div>
+
+      <!-- Annual table (hidden by default) -->
+      <div class="card" id="annual-card" style="display:none;margin-top:0">
+        <table class="annual-table">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>mm Total</th>
+              <th>Días lluvia</th>
+              <th>Temp. Prom.</th>
+            </tr>
+          </thead>
+          <tbody id="annual-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main><!-- /main -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-screen="home" id="nav-home">
+      <span class="nav-icon">🏠</span>Inicio
+    </button>
+    <button class="nav-btn" data-screen="historial" id="nav-historial">
+      <span class="nav-icon">📋</span>Historial
+    </button>
+    <button class="nav-btn" data-screen="stats" id="nav-stats">
+      <span class="nav-icon">📈</span>Estadísticas
+    </button>
+  </nav>
+</div><!-- /app-wrapper -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ==========================================
+//  PLUVIÓMETRO INVU — VISOR DE DATOS
+//  v1.0  ·  2026
+// ==========================================
+
+/* =========================================
+   STORAGE
+   ========================================= */
+const DB_KEY    = 'pluvio_records_v1';
+
+function loadRecords() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch { return []; }
+}
+
+let records = loadRecords();
+
+/* =========================================
+   DATE UTILITIES
+   ========================================= */
+function todayStr()   { return new Date().toISOString().slice(0,10); }
+function yesterdayStr(){
+  const d = new Date(); d.setDate(d.getDate()-1);
+  return d.toISOString().slice(0,10);
+}
+function parseDate(s){ return new Date(s + 'T12:00:00'); }
+function fmtDate(s){
+  const d = parseDate(s);
+  return d.toLocaleDateString('es-CR',{day:'2-digit',month:'long',year:'numeric'});
+}
+function fmtDateShort(s){
+  const d = parseDate(s);
+  return d.toLocaleDateString('es-CR',{day:'2-digit',month:'short'});
+}
+function getMonthYear(s){ return s.slice(0,7); }
+function monthName(my){
+  const d = new Date(my+'-15');
+  return d.toLocaleDateString('es-CR',{month:'long',year:'numeric'});
+}
+function monthShort(my){
+  const d = new Date(my+'-15');
+  return d.toLocaleDateString('es-CR',{month:'short'});
+}
+function currentMonthStr(){ return todayStr().slice(0,7); }
+
+/* =========================================
+   RAIN CANVAS ANIMATION
+   ========================================= */
+(function initRain(){
+  const canvas = document.getElementById('rain-canvas');
+  const ctx = canvas.getContext('2d');
+  let drops = [];
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    drops = Array.from({length:80}, ()=>({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      l: Math.random()*15+8,
+      s: Math.random()*3+2,
+      o: Math.random()*0.5+0.2
+    }));
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = '#00b4d8';
+    ctx.lineWidth = 0.7;
+    drops.forEach(d=>{
+      ctx.globalAlpha = d.o;
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - d.l*0.15, d.y + d.l);
+      ctx.stroke();
+      d.y += d.s;
+      d.x -= d.s * 0.15;
+      if(d.y > canvas.height){ d.y = -d.l; d.x = Math.random()*canvas.width; }
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* =========================================
+   NAVIGATION
+   ========================================= */
+let currentScreen = 'home';
+const screens = document.querySelectorAll('.screen');
+const navBtns  = document.querySelectorAll('.nav-btn');
+
+function showScreen(name){
+  currentScreen = name;
+  screens.forEach(s => s.classList.toggle('active', s.id === 'screen-'+name));
+  navBtns.forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+  if(name === 'home')      renderHome();
+  if(name === 'historial') renderHistorial();
+  if(name === 'stats')     renderStats();
+  window.scrollTo(0,0);
+}
+
+navBtns.forEach(b => b.addEventListener('click', ()=> showScreen(b.dataset.screen)));
+
+/* =========================================
+   HOME SCREEN
+   ========================================= */
+let miniChart = null;
+
+function renderHome(){
+  const today = todayStr();
+  const yesterday = yesterdayStr();
+
+  // Date label
+  document.getElementById('home-date-label').textContent =
+    'Hoy: ' + fmtDate(today);
+
+  // Period
+  document.getElementById('home-period-text').innerHTML =
+    `<span>7:00 a.m. · ${fmtDateShort(yesterday)}</span>  →  <span>7:00 a.m. · ${fmtDateShort(today)}</span>`;
+
+  // Stats for current month
+  const cm = currentMonthStr();
+  const monthRecs = records.filter(r => getMonthYear(r.fechaInicio) === cm);
+
+  const totalMm   = monthRecs.reduce((s,r)=> s + (r.mmLluvia||0), 0);
+  const temps     = monthRecs.filter(r => r.temperatura != null && r.temperatura !== '');
+  const avgTemp   = temps.length ? temps.reduce((s,r)=> s + r.temperatura, 0)/temps.length : null;
+  const daysRain  = monthRecs.filter(r => r.mmLluvia > 0).length;
+  const maxMm     = monthRecs.length ? Math.max(...monthRecs.map(r=>r.mmLluvia||0)) : null;
+
+  document.getElementById('stat-month-mm').textContent  = totalMm.toFixed(1) + ' mm';
+  document.getElementById('stat-avg-temp').textContent  = avgTemp != null ? avgTemp.toFixed(1)+'°C' : '—';
+  document.getElementById('stat-days-rain').textContent = daysRain;
+  document.getElementById('stat-max-day').textContent   = maxMm != null ? maxMm.toFixed(1)+' mm' : '—';
+
+  // Last record
+  const box = document.getElementById('home-last-record');
+  if(records.length){
+    const last = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio))[0];
+    box.innerHTML = `
+      <div class="last-record">
+        <span class="last-record-icon">✅</span>
+        <div class="last-record-info">
+          <div class="last-record-date">Último registro: ${fmtDate(last.fechaLectura)}</div>
+          <div class="last-record-vals">
+            🌧️ ${last.mmLluvia?.toFixed(1)} mm
+            ${last.temperatura != null ? ` &nbsp;·&nbsp; 🌡️ ${last.temperatura.toFixed(1)}°C` : ''}
+            ${last.humedad != null ? ` &nbsp;·&nbsp; 💧 ${Math.round(last.humedad)}%` : ''}
+          </div>
+        </div>
+      </div>`;
+  } else {
+    box.innerHTML = `<div class="no-record" style="margin-top:12px">📭 Aún no hay registros</div>`;
+  }
+
+  // Mini chart — last 15 days
+  renderMiniChart();
+}
+
+function renderMiniChart(){
+  const cm = currentMonthStr();
+  const monthRecs = records.filter(r => getMonthYear(r.fechaInicio) === cm)
+    .sort((a,b)=> a.fechaInicio.localeCompare(b.fechaInicio));
+
+  const labels = monthRecs.map(r => parseDate(r.fechaInicio).getDate());
+  const data   = monthRecs.map(r => r.mmLluvia || 0);
+
+  if(miniChart) miniChart.destroy();
+  const ctx = document.getElementById('mini-chart').getContext('2d');
+  miniChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: data.map(v=> v > 0 ? 'rgba(0,180,216,0.6)' : 'rgba(0,180,216,0.1)'),
+        borderColor: data.map(v=> v > 0 ? '#00b4d8' : 'rgba(0,180,216,0.3)'),
+        borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{
+        callbacks:{ label: ctx => ctx.parsed.y.toFixed(1)+' mm' },
+        backgroundColor:'rgba(6,13,31,0.9)', borderColor:'rgba(0,180,216,0.3)',
+        borderWidth:1, titleColor:'#90e0ef', bodyColor:'#e0f4ff',
+      }},
+      scales: {
+        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}} },
+        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}},
+            beginAtZero:true }
+      }
+    }
+  });
+}
+
+/* =========================================
+   HISTORIAL
+   ========================================= */
+let histFilter = 'all';
+
+function renderHistorial(){
+  const sorted = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio));
+  document.getElementById('hist-count').textContent = records.length;
+
+  // Build month filters
+  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort((a,b)=>b.localeCompare(a));
+  const filterRow = document.getElementById('filter-row');
+  filterRow.innerHTML = `<button class="filter-btn ${histFilter==='all'?'active':''}" data-filter="all">Todos</button>`;
+  months.forEach(m=>{
+    filterRow.innerHTML += `<button class="filter-btn ${histFilter===m?'active':''}" data-filter="${m}">${monthShort(m)}</button>`;
+  });
+  filterRow.querySelectorAll('.filter-btn').forEach(b=>
+    b.addEventListener('click', ()=>{ histFilter=b.dataset.filter; renderHistorial(); })
+  );
+
+  // Filter records
+  const filtered = histFilter==='all' ? sorted : sorted.filter(r=>getMonthYear(r.fechaInicio)===histFilter);
+
+  const list = document.getElementById('historial-list');
+  if(!filtered.length){
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌤️</div><div class="empty-text">No hay registros${histFilter!=='all'?' para este mes':''}</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(r=>{
+    const d = parseDate(r.fechaLectura);
+    const dayNum = d.getDate().toString().padStart(2,'0');
+    const monStr = d.toLocaleDateString('es-CR',{month:'short'}).toUpperCase();
+    return `
+      <div class="record-card">
+        <div class="record-day">
+          <div class="record-day-num">${dayNum}</div>
+          <div class="record-day-mon">${monStr}</div>
+        </div>
+        <div class="record-data">
+          <div class="record-vals">
+            <span class="record-mm">🌧️ ${(r.mmLluvia||0).toFixed(1)} mm</span>
+            ${r.temperatura!=null ? `<span class="record-temp">🌡️ Med: ${r.temperatura.toFixed(1)}°C | Máx: ${r.tempMax!=null?r.tempMax.toFixed(1):'—'} | Mín: ${r.tempMin!=null?r.tempMin.toFixed(1):'—'}</span>` : ''}
+            ${r.humedad!=null ? `<span class="record-temp" style="color:#48cae4">💧 Med: ${Math.round(r.humedad)}% | Máx: ${r.humMax!=null?Math.round(r.humMax):'—'} | Mín: ${r.humMin!=null?Math.round(r.humMin):'—'}</span>` : ''}
+          </div>
+          <div class="record-period">Período: 7am ${fmtDateShort(r.fechaInicio)} → 7am ${fmtDateShort(r.fechaLectura)}</div>
+          ${r.notas ? `<div class="record-notes">${r.notas}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* =========================================
+   ESTADÍSTICAS
+   ========================================= */
+let mainChart = null;
+let statsTab = 'lluvia';
+let selectedStatsMonth = currentMonthStr();
+
+function populateMonthSelector(){
+  const sel = document.getElementById('stats-month-select');
+  // All unique months from records, sorted newest first, plus current month always present
+  const allMonths = [...new Set([
+    currentMonthStr(),
+    ...records.map(r => getMonthYear(r.fechaInicio))
+  ])].sort((a,b)=>b.localeCompare(a));
+
+  sel.innerHTML = allMonths.map(m => {
+    const label = new Date(m+'-15').toLocaleDateString('es-CR',{month:'long',year:'numeric'});
+    const cap   = label.charAt(0).toUpperCase() + label.slice(1);
+    return `<option value="${m}" ${m===selectedStatsMonth?'selected':''}>${cap}</option>`;
+  }).join('');
+
+  sel.onchange = () => { selectedStatsMonth = sel.value; renderStats(); };
+}
+
+function renderStats(){
+  document.querySelectorAll('.stats-tab').forEach(t=>
+    t.classList.toggle('active', t.dataset.tab===statsTab)
+  );
+
+  // Hide month selector when viewing annual table (it covers all months)
+  const isAnual = statsTab === 'anual';
+  document.getElementById('annual-card').style.display       = isAnual ? 'block' : 'none';
+  document.getElementById('stats-chart-card').style.display  = isAnual ? 'none'  : 'block';
+  document.getElementById('stats-summary-grid').style.display= isAnual ? 'none'  : 'grid';
+  document.getElementById('month-selector-row').style.display= isAnual ? 'none'  : 'flex';
+
+  // Populate / refresh the month dropdown
+  populateMonthSelector();
+
+  const cm = selectedStatsMonth;
+  const monthRecs = records.filter(r=>getMonthYear(r.fechaInicio)===cm)
+    .sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
+
+  // Summary stats
+  const totalMm = monthRecs.reduce((s,r)=>s+(r.mmLluvia||0),0);
+  const maxMm   = monthRecs.length ? Math.max(...monthRecs.map(r=>r.mmLluvia||0)) : null;
+  const temps   = monthRecs.filter(r=>r.temperatura!=null && r.temperatura!=='');
+  const avgTemp = temps.length ? temps.reduce((s,r)=>s+r.temperatura,0)/temps.length : null;
+  const maxTemp = temps.length ? Math.max(...temps.map(r=>r.temperatura)) : null;
+
+  document.getElementById('ss-total-mm').textContent  = totalMm.toFixed(1)+' mm';
+  document.getElementById('ss-avg-temp').textContent  = avgTemp!=null ? avgTemp.toFixed(1)+'°C' : '—';
+  document.getElementById('ss-max-mm').textContent    = maxMm!=null ? maxMm.toFixed(1)+' mm' : '—';
+  document.getElementById('ss-max-temp').textContent  = maxTemp!=null ? maxTemp.toFixed(1)+'°C' : '—';
+
+  if(statsTab === 'anual'){
+    renderAnnualTable(); return;
+  }
+
+  if(mainChart) mainChart.destroy();
+  const ctx = document.getElementById('main-chart').getContext('2d');
+  const labels = monthRecs.map(r => parseDate(r.fechaInicio).getDate());
+
+  if(statsTab==='lluvia'){
+    const data = monthRecs.map(r=>r.mmLluvia||0);
+    mainChart = new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          label:'Precipitación (mm)',
+          data,
+          backgroundColor:'rgba(0,180,216,0.55)',
+          borderColor:'#00b4d8',
+          borderWidth:1, borderRadius:5,
+        }]
+      },
+      options: chartOptions('mm')
+    });
+  } else if (statsTab==='temperatura') {
+    const dataMed = monthRecs.map(r=>r.temperatura??null);
+    const dataMax = monthRecs.map(r=>r.tempMax??null);
+    const dataMin = monthRecs.map(r=>r.tempMin??null);
+    mainChart = new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {
+            label:'T. Media',
+            data: dataMed,
+            borderColor:'#ffd166',
+            backgroundColor:'rgba(255,209,102,0.1)',
+            pointBackgroundColor:'#ffd166',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'T. Máxima',
+            data: dataMax,
+            borderColor:'#ef476f',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#ef476f',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'T. Mínima',
+            data: dataMin,
+            borderColor:'#00b4d8',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#00b4d8',
+            tension:0.4, fill:false, spanGaps:true,
+          }
+        ]
+      },
+      options: chartOptions('°C', true)
+    });
+  } else if (statsTab==='humedad') {
+    const dataMed = monthRecs.map(r=>r.humedad??null);
+    const dataMax = monthRecs.map(r=>r.humMax??null);
+    const dataMin = monthRecs.map(r=>r.humMin??null);
+    mainChart = new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {
+            label:'H. Media',
+            data: dataMed,
+            borderColor:'#48cae4',
+            backgroundColor:'rgba(72,202,228,0.1)',
+            pointBackgroundColor:'#48cae4',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'H. Máxima',
+            data: dataMax,
+            borderColor:'#90e0ef',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#90e0ef',
+            tension:0.4, fill:false, spanGaps:true,
+          },
+          {
+            label:'H. Mínima',
+            data: dataMin,
+            borderColor:'#0077b6',
+            backgroundColor:'transparent',
+            pointBackgroundColor:'#0077b6',
+            tension:0.4, fill:false, spanGaps:true,
+          }
+        ]
+      },
+      options: chartOptions('%', true)
+    });
+  }
+}
+
+function chartOptions(unit, showLegend = false){
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{
+        display:showLegend, 
+        labels:{color:'#7bb8d4', boxWidth:12, font:{size:11, family:'Inter'}}
+      },
+      tooltip:{
+        callbacks:{ 
+          label: c => {
+            const val = c.parsed.y;
+            return val != null ? (c.dataset.label + ': ' + val.toFixed(1) + ' ' + unit) : '';
+          }
+        },
+        backgroundColor:'rgba(6,13,31,0.9)', borderColor:'rgba(0,180,216,0.3)',
+        borderWidth:1, titleColor:'#90e0ef', bodyColor:'#e0f4ff',
+      }
+    },
+    scales:{
+      x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}} },
+      y:{ 
+        grid:{color:'rgba(255,255,255,0.04)'}, 
+        ticks:{color:'#3d6e8a',font:{size:10}}, 
+        beginAtZero: unit !== '°C',
+        min: unit === '°C' ? 15 : undefined,
+        max: unit === '%' ? 100 : undefined
+      }
+    }
+  };
+}
+
+function renderAnnualTable(){
+  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort();
+  const tbody = document.getElementById('annual-tbody');
+  if(!months.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);padding:20px">Sin datos</td></tr>';
+    return;
+  }
+  tbody.innerHTML = months.map(m=>{
+    const recs = records.filter(r=>getMonthYear(r.fechaInicio)===m);
+    const total = recs.reduce((s,r)=>s+(r.mmLluvia||0),0);
+    const dias  = recs.filter(r=>r.mmLluvia>0).length;
+    const temps = recs.filter(r=>r.temperatura!=null && r.temperatura!=='');
+    const avg   = temps.length ? temps.reduce((s,r)=>s+r.temperatura,0)/temps.length : null;
+    return `<tr>
+      <td style="text-align:left;text-transform:capitalize">${monthName(m)}</td>
+      <td class="mm-cell">${total.toFixed(1)}</td>
+      <td>${dias}</td>
+      <td class="temp-cell">${avg!=null?avg.toFixed(1)+'°C':'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+document.querySelectorAll('.stats-tab').forEach(t=>
+  t.addEventListener('click',()=>{ statsTab=t.dataset.tab; renderStats(); })
+);
+
+/* =========================================
+   EXPORT CSV
+   ========================================= */
+function exportCSV(){
+  if(!records.length){ showToast('⚠️ No hay datos para exportar', true); return; }
+  const sorted = [...records].sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
+  const rows = [
+    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temp Media (°C)','Temp Máx (°C)','Temp Mín (°C)','Hum Media (%)','Hum Máx (%)','Hum Mín (%)','Notas','Timestamp']
+  ];
+  sorted.forEach(r=>rows.push([
+    r.id, r.fechaLectura, r.fechaInicio,
+    (r.mmLluvia||0).toFixed(1),
+    r.temperatura!=null ? r.temperatura.toFixed(1) : '',
+    r.tempMax!=null ? r.tempMax.toFixed(1) : '',
+    r.tempMin!=null ? r.tempMin.toFixed(1) : '',
+    r.humedad!=null ? r.humedad.toFixed(1) : '',
+    r.humMax!=null ? r.humMax.toFixed(1) : '',
+    r.humMin!=null ? r.humMin.toFixed(1) : '',
+    '"'+(r.notas||'').replace(/"/g,'""')+'"',
+    new Date(r.timestamp).toISOString()
+  ]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pluviometro_liberia_visor_${todayStr()}.csv`;
+  a.click();
+  showToast('📥 CSV exportado correctamente');
+}
+document.getElementById('btn-export').addEventListener('click', exportCSV);
+
+/* =========================================
+   TOAST
+   ========================================= */
+let toastTimer;
+function showToast(msg, isError=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isError?' error':'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className=''; }, 3200);
+}
+
+/* =========================================
+   INIT
+   ========================================= */
+if(window.location.protocol === 'file:'){
+  showToast('⚠️ No abra este archivo como file://. Use un servidor local (http://localhost).', true);
+  console.warn('La app se cargó desde file:// y fetch puede fallar. Inicie un servidor local o use Live Server.');
+}
+
+renderHome();
+
+console.log('%c🌧️ Pluviómetro INVU — Visor de Datos · Liberia Centro, Guanacaste', 'color:#00b4d8;font-size:14px;font-weight:bold');
+console.log('%cRegistros cargados: ' + records.length, 'color:#90e0ef');
+</script>
+</body>
+</html>
