@@ -306,6 +306,7 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="btn-export" title="Exportar CSV">📥</button>
+      <button class="icon-btn" id="btn-reload-csv" title="Recargar desde CSV">🔃</button>
     </div>
   </header>
 
@@ -452,11 +453,39 @@ function loadRecords() {
 let records = loadRecords();
 
 /* Simple CSV parser to match editor's CSV structure */
+function parseCSVLine(line){
+  const columns = [];
+  let value = '';
+  let inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(line[i+1] === '"'){ value += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        value += ch;
+      }
+    } else {
+      if(ch === '"'){
+        inQuotes = true;
+      } else if(ch === ','){
+        columns.push(value);
+        value = '';
+      } else {
+        value += ch;
+      }
+    }
+  }
+  columns.push(value);
+  return columns;
+}
+
 function parseCSVtoRecords(csv){
   const lines = csv.split(/\r?\n/).filter(l=>l.trim()!=='');
   if(lines.length < 2) return [];
   return lines.slice(1).map(line=>{
-    const cols = line.split(',');
+    const cols = parseCSVLine(line);
     return {
       id: isFinite(Number(cols[0])) ? Number(cols[0]) : cols[0],
       fechaLectura: cols[1] || '',
@@ -468,7 +497,7 @@ function parseCSVtoRecords(csv){
       humedad: cols[7]!=='' ? parseFloat(cols[7]) : null,
       humMax: cols[8]!=='' ? parseFloat(cols[8]) : null,
       humMin: cols[9]!=='' ? parseFloat(cols[9]) : null,
-      notas: cols[10] ? cols[10].replace(/^"|"$/g,'').replace(/""/g,'"') : '',
+      notas: cols[10] || '',
       timestamp: cols[11] ? Date.parse(cols[11]) : Date.now()
     };
   });
@@ -1002,6 +1031,16 @@ if(window.location.protocol === 'file:'){
 
 // Try loading static CSV first, then render
 loadRecordsFromStaticCSV('data/pluviometro.csv').then(ok=>{ renderHome(); });
+
+// Hook reload button
+if(document.getElementById('btn-reload-csv')){
+  document.getElementById('btn-reload-csv').addEventListener('click', async ()=>{
+    if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
+    const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
+    if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
+    else{ showToast('⚠️ No fue posible cargar CSV', true); }
+  });
+}
 
 console.log('%c🌧️ Pluviómetro INVU — Visor de Datos · Liberia Centro, Guanacaste', 'color:#00b4d8;font-size:14px;font-weight:bold');
 console.log('%cRegistros cargados: ' + records.length, 'color:#90e0ef');
