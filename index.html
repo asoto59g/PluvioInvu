@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pluviómetro – Liberia Centro, Guanacaste</title>
-  <meta name="description" content="Registro diario de precipitación y temperatura del pluviómetro INVU en Liberia Centro, Guanacaste, Costa Rica." />
+  <title>Pluviómetro – Visor de Datos | Liberia Centro, Guanacaste</title>
+  <meta name="description" content="Visor de datos de precipitación y temperatura del pluviómetro INVU en Liberia Centro, Guanacaste, Costa Rica." />
+  <meta property="og:title" content="Pluviómetro INVU — Visor de Datos" />
+  <meta property="og:description" content="Visualiza registros de precipitación y temperatura de Liberia Centro, Guanacaste" />
+  <meta property="og:image" content="./preview.jpg" />
+  <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -153,17 +157,6 @@
     .stat-mini-val.temp { color: var(--warn); }
     .stat-mini-lbl { font-size: 10px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.6px; }
 
-    .btn-primary {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 15px; border: none; border-radius: var(--r);
-      background: linear-gradient(135deg, var(--primary2), var(--primary));
-      color: #fff; font-family: 'Inter', sans-serif; font-size: 15px;
-      font-weight: 700; cursor: pointer; transition: var(--trans);
-      box-shadow: 0 4px 20px rgba(0, 180, 216, 0.3); letter-spacing: 0.3px;
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,180,216,0.45); }
-    .btn-primary:active { transform: translateY(0); }
-
     .last-record {
       display: flex; align-items: center; gap: 12px; padding: 12px 14px;
       background: rgba(6,214,160,0.06); border: 1px solid rgba(6,214,160,0.15);
@@ -174,41 +167,6 @@
     .last-record-date { font-size: 11px; color: var(--text2); }
     .last-record-vals { font-size: 14px; font-weight: 700; color: var(--success); }
     .no-record { text-align: center; padding: 12px; color: var(--text3); font-size: 13px; }
-
-    /* ==================== FORM SCREEN ==================== */
-    .form-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-    .form-sub { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
-
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 7px; letter-spacing: 0.4px; text-transform: uppercase; }
-    .form-label .lbl-unit { font-weight: 400; color: var(--text3); }
-    .form-control {
-      width: 100%; padding: 13px 16px;
-      background: rgba(0,180,216,0.06); border: 1px solid var(--border);
-      border-radius: var(--r2); color: var(--text);
-      font-family: 'Inter', sans-serif; font-size: 15px;
-      outline: none; transition: var(--trans);
-    }
-    .form-control:focus { border-color: var(--primary); background: rgba(0,180,216,0.1); box-shadow: 0 0 0 3px rgba(0,180,216,0.12); }
-    .form-control::placeholder { color: var(--text3); }
-    input[type=number].form-control { font-size: 22px; font-weight: 700; text-align: center; }
-
-    .period-info-box {
-      background: rgba(0,180,216,0.05); border: 1px dashed var(--border);
-      border-radius: var(--r2); padding: 12px 14px; margin-bottom: 18px;
-      font-size: 12px; color: var(--text2); line-height: 1.7;
-    }
-    .period-info-box strong { color: var(--accent); }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .btn-secondary {
-      width: 100%; padding: 13px; border: 1px solid var(--border);
-      border-radius: var(--r); background: transparent;
-      color: var(--text2); font-family: 'Inter', sans-serif;
-      font-size: 14px; font-weight: 600; cursor: pointer; transition: var(--trans);
-    }
-    .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
 
     /* ==================== HISTORIAL ==================== */
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -243,15 +201,6 @@
     .record-temp { font-size: 14px; font-weight: 600; color: var(--warn); }
     .record-period { font-size: 10px; color: var(--text3); margin-top: 3px; }
     .record-notes { font-size: 11px; color: var(--text3); margin-top: 3px; font-style: italic; }
-    .record-actions { display: flex; flex-direction: column; gap: 6px; }
-    .act-btn {
-      width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border);
-      background: transparent; color: var(--text2); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; transition: var(--trans);
-    }
-    .act-btn:hover { background: rgba(0,180,216,0.1); color: var(--primary); border-color: var(--primary); }
-    .act-btn.del:hover { background: rgba(239,71,111,0.1); color: var(--danger); border-color: var(--danger); }
 
     .empty-state { text-align: center; padding: 40px 20px; }
     .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
@@ -303,48 +252,6 @@
     .annual-table .mm-cell { color: var(--primary); font-weight: 700; }
     .annual-table .temp-cell { color: var(--warn); font-weight: 600; }
 
-    /* ==================== CONFIG SCREEN ==================== */
-    .config-section { margin-bottom: 22px; }
-    .config-section-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.6px; display: flex; align-items: center; gap: 6px; }
-    .config-desc { font-size: 12px; color: var(--text2); margin-bottom: 12px; line-height: 1.6; }
-    .config-desc code { background: rgba(0,180,216,0.1); border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: var(--accent); font-family: monospace; }
-
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-    .toggle-label { font-size: 13px; font-weight: 500; }
-    .toggle-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-    .toggle {
-      position: relative; width: 46px; height: 26px;
-      cursor: pointer; flex-shrink: 0;
-    }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider {
-      position: absolute; inset: 0; background: rgba(255,255,255,0.1);
-      border-radius: 13px; transition: var(--trans); border: 1px solid var(--border);
-    }
-    .toggle-slider::before {
-      content: ''; position: absolute; width: 18px; height: 18px;
-      border-radius: 50%; background: var(--text2); top: 3px; left: 3px;
-      transition: var(--trans);
-    }
-    .toggle input:checked + .toggle-slider { background: rgba(0,180,216,0.3); border-color: var(--primary); }
-    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--primary); }
-
-    .sync-status {
-      display: flex; align-items: center; gap: 8px; padding: 10px 14px;
-      border-radius: var(--r2); font-size: 12px; margin-top: 10px;
-    }
-    .sync-status.ok { background: rgba(6,214,160,0.08); border: 1px solid rgba(6,214,160,0.2); color: var(--success); }
-    .sync-status.err { background: rgba(239,71,111,0.08); border: 1px solid rgba(239,71,111,0.2); color: var(--danger); }
-    .sync-status.idle { background: rgba(0,180,216,0.06); border: 1px solid var(--border); color: var(--text2); }
-
-    .instructions-box {
-      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-      border-radius: var(--r2); padding: 14px; margin-top: 10px;
-      font-size: 12px; color: var(--text2); line-height: 1.8;
-    }
-    .instructions-box ol { padding-left: 16px; }
-    .instructions-box li { margin-bottom: 4px; }
-
     /* ==================== TOAST ==================== */
     #toast {
       position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -356,32 +263,6 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     #toast.error { background: rgba(239,71,111,0.15); border-color: rgba(239,71,111,0.3); color: var(--danger); }
-
-    /* ==================== MODAL ==================== */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(6,13,31,0.85);
-      backdrop-filter: blur(8px); z-index: 500;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px; opacity: 0; pointer-events: none; transition: var(--trans);
-    }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal {
-      background: #0a1530; border: 1px solid var(--border);
-      border-radius: var(--r); padding: 24px; width: 100%; max-width: 400px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
-      transform: scale(0.95); transition: var(--trans);
-    }
-    .modal-overlay.open .modal { transform: scale(1); }
-    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-    .modal-sub { font-size: 12px; color: var(--text2); margin-bottom: 18px; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
-    .btn-danger {
-      flex: 1; padding: 12px; border: 1px solid rgba(239,71,111,0.4);
-      border-radius: var(--r2); background: rgba(239,71,111,0.08);
-      color: var(--danger); font-family: 'Inter', sans-serif; font-size: 14px;
-      font-weight: 600; cursor: pointer; transition: var(--trans);
-    }
-    .btn-danger:hover { background: rgba(239,71,111,0.18); }
 
     /* ==================== SCROLLBAR ==================== */
     ::-webkit-scrollbar { width: 4px; }
@@ -395,10 +276,6 @@
       border-top: 1px solid var(--border); z-index: 100;
       display: flex; justify-content: space-around; padding: 8px 10px;
     }
-
-    /* ==================== SYNC PULSE ==================== */
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.9)} }
-    .syncing { animation: pulse 1s infinite; }
 
     /* ==================== RESPONSIVE ==================== */
     @media (min-width: 600px) {
@@ -423,14 +300,12 @@
     <div class="header-brand">
       <span class="header-icon">🌧️</span>
       <div>
-        <div class="header-title">Pluviómetro INVU</div>
+        <div class="header-title">Pluviómetro INVU — Visor</div>
         <div class="header-sub">Liberia Centro · Guanacaste · Costa Rica</div>
       </div>
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="btn-export" title="Exportar CSV">📥</button>
-      <button class="icon-btn" id="btn-sync-now" title="Sincronizar Google Sheets">🔄</button>
-      <button class="icon-btn" id="btn-config" title="Configuración">⚙️</button>
     </div>
   </header>
 
@@ -463,10 +338,6 @@
           </div>
         </div>
 
-        <button class="btn-primary" id="btn-go-registro">
-          ➕ &nbsp;Registrar Lectura de Hoy
-        </button>
-
         <div id="home-last-record"></div>
       </div>
 
@@ -476,53 +347,6 @@
         <div style="position:relative;height:130px">
           <canvas id="mini-chart"></canvas>
         </div>
-      </div>
-    </section>
-
-    <!-- ====== SCREEN: REGISTRO ====== -->
-    <section id="screen-registro" class="screen">
-      <div class="card">
-        <div class="form-title">✏️ Nueva Lectura</div>
-        <div class="form-sub">Ingrese los datos medidos esta mañana</div>
-
-        <div class="period-info-box" id="registro-period-info"></div>
-
-        <form id="form-registro" novalidate>
-          <!-- Fecha de lectura -->
-          <div class="form-group">
-            <label class="form-label" for="input-fecha">📅 Fecha de Lectura</label>
-            <input type="date" id="input-fecha" class="form-control" required />
-          </div>
-
-          <div class="form-row">
-            <!-- Lluvia -->
-            <div class="form-group">
-              <label class="form-label" for="input-mm">🌧️ Lluvia <span class="lbl-unit">(mm)</span></label>
-              <input type="number" id="input-mm" class="form-control"
-                     placeholder="0.0" min="0" max="999" step="0.1" required />
-            </div>
-            <!-- Temperatura -->
-            <div class="form-group">
-              <label class="form-label" for="input-temp">🌡️ Temp. <span class="lbl-unit">(°C)</span></label>
-              <input type="number" id="input-temp" class="form-control"
-                     placeholder="28.0" min="-10" max="60" step="0.1" />
-            </div>
-          </div>
-
-          <!-- Notas -->
-          <div class="form-group">
-            <label class="form-label" for="input-notas">📝 Notas <span class="lbl-unit">(opcional)</span></label>
-            <textarea id="input-notas" class="form-control" rows="2"
-                      placeholder="Observaciones, condiciones especiales..."></textarea>
-          </div>
-
-          <input type="hidden" id="edit-id" value="" />
-
-          <div style="display:flex;gap:10px;margin-top:4px">
-            <button type="button" class="btn-secondary" id="btn-cancel-registro" style="max-width:120px">Cancelar</button>
-            <button type="submit" class="btn-primary" id="btn-guardar">💾 &nbsp;Guardar Registro</button>
-          </div>
-        </form>
       </div>
     </section>
 
@@ -556,6 +380,7 @@
       <div class="stats-tabs">
         <button class="stats-tab active" data-tab="lluvia">🌧️ Lluvia</button>
         <button class="stats-tab" data-tab="temperatura">🌡️ Temperatura</button>
+        <button class="stats-tab" data-tab="humedad">💧 Humedad</button>
         <button class="stats-tab" data-tab="anual">📅 Anual</button>
       </div>
 
@@ -590,115 +415,12 @@
       </div>
     </section>
 
-    <!-- ====== SCREEN: CONFIGURACIÓN ====== -->
-    <section id="screen-config" class="screen">
-      <div class="section-title" style="margin-bottom:20px">⚙️ Configuración</div>
-
-      <!-- GOOGLE SHEETS -->
-      <div class="card config-section">
-        <div class="config-section-title">📊 Sincronización Google Sheets</div>
-        <p class="config-desc">
-          Los datos se envían automáticamente a tu hoja de cálculo de Google.
-          Necesitas crear un <strong>Google Apps Script</strong> como intermediario.
-          <a href="#" id="show-instructions" style="color:var(--primary);font-size:11px;display:block;margin-top:4px">Ver instrucciones de configuración ▼</a>
-        </p>
-
-        <div class="instructions-box" id="gsheets-instructions" style="display:none">
-          <ol>
-            <li>Ir a <code>script.google.com</code> → Nuevo proyecto</li>
-            <li>Pegar el código del Apps Script (ver abajo)</li>
-            <li>Desplegar como <strong>Aplicación web</strong> (acceso: Cualquier persona)</li>
-            <li>Copiar la URL de implementación y pegarla abajo</li>
-          </ol>
-          <div style="margin-top:10px;padding:10px;background:rgba(0,0,0,0.3);border-radius:8px;font-family:monospace;font-size:11px;color:var(--accent);white-space:pre-wrap;word-break:break-all" id="apps-script-code"></div>
-        </div>
-
-        <div class="form-group" style="margin-top:12px">
-          <label class="form-label">URL del Apps Script</label>
-          <input type="url" id="config-script-url" class="form-control"
-                 placeholder="https://script.google.com/macros/s/..." />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Nombre del operador</label>
-          <input type="text" id="config-operador" class="form-control" placeholder="Tu nombre" />
-        </div>
-
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Sincronización automática</div>
-            <div class="toggle-sub">Al guardar cada registro</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="config-auto-sync" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div id="sync-status-box" class="sync-status idle">
-          ⏸️ Sin sincronizar aún
-        </div>
-
-        <button class="btn-primary" id="btn-test-sync" style="margin-top:10px">
-          🔄 &nbsp;Probar Conexión
-        </button>
-      </div>
-
-      <!-- NOTIFICACIONES -->
-      <div class="card config-section">
-        <div class="config-section-title">🔔 Recordatorio Diario</div>
-        <p class="config-desc">Recibe una notificación cada mañana para no olvidar registrar la lectura del pluviómetro.</p>
-
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Activar recordatorio</div>
-            <div class="toggle-sub">Requiere permiso de notificaciones</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="config-notif" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="form-group" style="margin-top:12px">
-          <label class="form-label">⏰ Hora del recordatorio</label>
-          <input type="time" id="config-notif-time" class="form-control" value="07:15" />
-        </div>
-
-        <div id="notif-status" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-
-        <button class="btn-secondary" id="btn-test-notif" style="margin-top:10px">
-          🔔 Probar Notificación Ahora
-        </button>
-      </div>
-
-      <!-- DATOS -->
-      <div class="card config-section">
-        <div class="config-section-title">💾 Datos Locales</div>
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Total de registros</div>
-            <div class="toggle-sub">Almacenados en este dispositivo</div>
-          </div>
-          <span id="config-total-records" style="font-size:18px;font-weight:800;color:var(--primary)">0</span>
-        </div>
-        <button class="btn-secondary" id="btn-export-config" style="margin-top:10px">
-          📥 Exportar todos los datos (CSV)
-        </button>
-      </div>
-
-      <button class="btn-primary" id="btn-save-config">💾 &nbsp;Guardar Configuración</button>
-    </section>
-
   </main><!-- /main -->
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn active" data-screen="home" id="nav-home">
       <span class="nav-icon">🏠</span>Inicio
-    </button>
-    <button class="nav-btn" data-screen="registro" id="nav-registro">
-      <span class="nav-icon">✏️</span>Registrar
     </button>
     <button class="nav-btn" data-screen="historial" id="nav-historial">
       <span class="nav-icon">📋</span>Historial
@@ -709,24 +431,12 @@
   </nav>
 </div><!-- /app-wrapper -->
 
-<!-- MODAL: Confirmar eliminación -->
-<div class="modal-overlay" id="modal-delete">
-  <div class="modal">
-    <div class="modal-title">🗑️ Eliminar Registro</div>
-    <div class="modal-sub">¿Está seguro de que desea eliminar este registro? Esta acción no se puede deshacer.</div>
-    <div class="modal-actions">
-      <button class="btn-secondary" id="modal-cancel" style="max-width:120px">Cancelar</button>
-      <button class="btn-danger" id="modal-confirm">Eliminar</button>
-    </div>
-  </div>
-</div>
-
 <!-- TOAST -->
 <div id="toast"></div>
 
 <script>
 // ==========================================
-//  PLUVIÓMETRO INVU — Liberia Centro, GCR
+//  PLUVIÓMETRO INVU — VISOR DE DATOS
 //  v1.0  ·  2026
 // ==========================================
 
@@ -734,28 +444,106 @@
    STORAGE
    ========================================= */
 const DB_KEY    = 'pluvio_records_v1';
-const CFG_KEY   = 'pluvio_config_v1';
 
 function loadRecords() {
   try { return JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch { return []; }
 }
-function saveRecords(r) {
-  localStorage.setItem(DB_KEY, JSON.stringify(r));
-}
-function loadConfig() {
-  const defaults = {
-    scriptUrl: '', operador: '', autoSync: false,
-    notifEnabled: false, notifTime: '07:15',
-    lastSync: null
-  };
-  try { return { ...defaults, ...JSON.parse(localStorage.getItem(CFG_KEY)) }; } catch { return defaults; }
-}
-function saveConfig(c) {
-  localStorage.setItem(CFG_KEY, JSON.stringify(c));
-}
 
 let records = loadRecords();
-let config  = loadConfig();
+
+/* Simple CSV parser to match editor's CSV structure */
+function parseCSVLine(line){
+  const columns = [];
+  let value = '';
+  let inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(line[i+1] === '"'){ value += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        value += ch;
+      }
+    } else {
+      if(ch === '"'){
+        inQuotes = true;
+      } else if(ch === ','){
+        columns.push(value);
+        value = '';
+      } else {
+        value += ch;
+      }
+    }
+  }
+  columns.push(value);
+  return columns;
+}
+
+function parseCSVtoRecords(csv){
+  const lines = csv.split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(lines.length < 2) return [];
+  const headers = parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());
+  const idxOf = name => headers.findIndex(h => h.includes(name));
+  const idIdx = idxOf('id');
+  const fechaLecturaIdx = idxOf('fecha lect');
+  const fechaInicioIdx = headers.findIndex(h=>h.includes('fecha inicio')||h.includes('periodo'));
+  const mmIdx = headers.findIndex(h=>h.includes('lluv'));
+  const tempIdx = headers.findIndex(h=>h.includes('temp') && !h.includes('máx') && !h.includes('max') && !h.includes('mín') && !h.includes('min'));
+  const tempMaxIdx = headers.findIndex(h=>h.includes('temp') && (h.includes('máx')||h.includes('max')));
+  const tempMinIdx = headers.findIndex(h=>h.includes('temp') && (h.includes('mín')||h.includes('min')));
+  const humIdx = headers.findIndex(h=>h.includes('humedad') && !h.includes('máx') && !h.includes('max') && !h.includes('mín') && !h.includes('min'));
+  const humMaxIdx = headers.findIndex(h=>h.includes('humedad') && (h.includes('máx')||h.includes('max')));
+  const humMinIdx = headers.findIndex(h=>h.includes('humedad') && (h.includes('mín')||h.includes('min')));
+  const notasIdx = headers.findIndex(h=>h.includes('nota'));
+  const tsIdx = headers.findIndex(h=>h.includes('timestamp')||h.includes('time'));
+  return lines.slice(1).map(line=>{
+    const cols = parseCSVLine(line);
+    return {
+      id: idIdx>-1 && cols[idIdx] ? (isFinite(Number(cols[idIdx])) ? Number(cols[idIdx]) : cols[idIdx]) : null,
+      fechaLectura: fechaLecturaIdx>-1 ? (cols[fechaLecturaIdx]||'') : (cols[1]||''),
+      fechaInicio: fechaInicioIdx>-1 ? (cols[fechaInicioIdx]||'') : (cols[2]||''),
+      mmLluvia: mmIdx>-1 ? parseFloat(cols[mmIdx])||0 : parseFloat(cols[3])||0,
+      temperatura: tempIdx>-1 && cols[tempIdx]!=='"' && cols[tempIdx]!=='' ? parseFloat(cols[tempIdx]) : null,
+      tempMax: tempMaxIdx>-1 && cols[tempMaxIdx]!=='' ? parseFloat(cols[tempMaxIdx]) : null,
+      tempMin: tempMinIdx>-1 && cols[tempMinIdx]!=='' ? parseFloat(cols[tempMinIdx]) : null,
+      humedad: humIdx>-1 && cols[humIdx]!=='' ? parseFloat(cols[humIdx]) : null,
+      humMax: humMaxIdx>-1 && cols[humMaxIdx]!=='' ? parseFloat(cols[humMaxIdx]) : null,
+      humMin: humMinIdx>-1 && cols[humMinIdx]!=='' ? parseFloat(cols[humMinIdx]) : null,
+      notas: notasIdx>-1 ? (cols[notasIdx]||'') : (cols[5]||''),
+      timestamp: tsIdx>-1 && cols[tsIdx] ? Date.parse(cols[tsIdx]) : (cols[6]?Date.parse(cols[6]):Date.now())
+    };
+  });
+}
+
+// Load from Google Sheets export CSV
+async function loadRecordsFromGoogleSheets(sheetId){
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+  try{
+    const resp = await fetch(url, {cache:'no-store'});
+    if(!resp.ok) return false;
+    const csv = await resp.text();
+    const recs = parseCSVtoRecords(csv);
+    if(recs && recs.length){ 
+      records = recs; 
+      localStorage.setItem(DB_KEY, JSON.stringify(records)); 
+      showToast('✅ Datos cargados desde Google Sheets');
+      return true; 
+    }
+  }catch(err){ console.warn('loadRecordsFromGoogleSheets error', err); }
+  return false;
+}
+
+async function loadRecordsFromStaticCSV(path){
+  try{
+    const resp = await fetch(path, {cache:'no-store'});
+    if(!resp.ok) return false;
+    const csv = await resp.text();
+    const recs = parseCSVtoRecords(csv);
+    if(recs && recs.length){ records = recs; localStorage.setItem(DB_KEY, JSON.stringify(records)); showToast('✅ Datos cargados desde CSV'); return true; }
+  }catch(err){ console.warn('loadRecordsFromStaticCSV error', err); }
+  return false;
+}
 
 /* =========================================
    DATE UTILITIES
@@ -839,14 +627,10 @@ function showScreen(name){
   if(name === 'home')      renderHome();
   if(name === 'historial') renderHistorial();
   if(name === 'stats')     renderStats();
-  if(name === 'registro')  setupRegistroForm();
-  if(name === 'config')    renderConfig();
   window.scrollTo(0,0);
 }
 
 navBtns.forEach(b => b.addEventListener('click', ()=> showScreen(b.dataset.screen)));
-document.getElementById('btn-go-registro').addEventListener('click', ()=> showScreen('registro'));
-document.getElementById('btn-config').addEventListener('click', ()=> showScreen('config'));
 
 /* =========================================
    HOME SCREEN
@@ -867,7 +651,7 @@ function renderHome(){
 
   // Stats for current month
   const cm = currentMonthStr();
-  const monthRecs = records.filter(r => getMonthYear(r.fechaLectura) === cm);
+  const monthRecs = records.filter(r => getMonthYear(r.fechaInicio) === cm);
 
   const totalMm   = monthRecs.reduce((s,r)=> s + (r.mmLluvia||0), 0);
   const temps     = monthRecs.filter(r => r.temperatura != null && r.temperatura !== '');
@@ -883,7 +667,7 @@ function renderHome(){
   // Last record
   const box = document.getElementById('home-last-record');
   if(records.length){
-    const last = [...records].sort((a,b)=> b.fechaLectura.localeCompare(a.fechaLectura))[0];
+    const last = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio))[0];
     box.innerHTML = `
       <div class="last-record">
         <span class="last-record-icon">✅</span>
@@ -892,6 +676,7 @@ function renderHome(){
           <div class="last-record-vals">
             🌧️ ${last.mmLluvia?.toFixed(1)} mm
             ${last.temperatura != null ? ` &nbsp;·&nbsp; 🌡️ ${last.temperatura.toFixed(1)}°C` : ''}
+            ${last.humedad != null ? ` &nbsp;·&nbsp; 💧 ${Math.round(last.humedad)}%` : ''}
           </div>
         </div>
       </div>`;
@@ -905,10 +690,10 @@ function renderHome(){
 
 function renderMiniChart(){
   const cm = currentMonthStr();
-  const monthRecs = records.filter(r => getMonthYear(r.fechaLectura) === cm)
-    .sort((a,b)=> a.fechaLectura.localeCompare(b.fechaLectura));
+  const monthRecs = records.filter(r => getMonthYear(r.fechaInicio) === cm)
+    .sort((a,b)=> a.fechaInicio.localeCompare(b.fechaInicio));
 
-  const labels = monthRecs.map(r => parseDate(r.fechaLectura).getDate());
+  const labels = monthRecs.map(r => parseDate(r.fechaInicio).getDate());
   const data   = monthRecs.map(r => r.mmLluvia || 0);
 
   if(miniChart) miniChart.destroy();
@@ -941,116 +726,16 @@ function renderMiniChart(){
 }
 
 /* =========================================
-   REGISTRO FORM
-   ========================================= */
-let editingId = null;
-
-function setupRegistroForm(id=null){
-  editingId = id;
-  const today = todayStr();
-  const yesterday = yesterdayStr();
-
-  document.getElementById('registro-period-info').innerHTML =
-    `📅 Período medido: <strong>7:00 a.m. del ${fmtDate(yesterday)}</strong><br>
-     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <strong>7:00 a.m. del ${fmtDate(today)}</strong>`;
-
-  if(id != null){
-    const rec = records.find(r=>r.id===id);
-    if(rec){
-      document.getElementById('input-fecha').value = rec.fechaLectura;
-      document.getElementById('input-mm').value    = rec.mmLluvia ?? '';
-      document.getElementById('input-temp').value  = rec.temperatura ?? '';
-      document.getElementById('input-notas').value = rec.notas || '';
-      document.getElementById('edit-id').value     = id;
-      document.getElementById('btn-guardar').textContent = '💾  Actualizar Registro';
-    }
-  } else {
-    document.getElementById('form-registro').reset();
-    document.getElementById('input-fecha').value = today;
-    document.getElementById('edit-id').value = '';
-    document.getElementById('btn-guardar').innerHTML = '💾 &nbsp;Guardar Registro';
-  }
-
-  // Update period info when date changes
-  document.getElementById('input-fecha').addEventListener('change', function(){
-    const d = new Date(this.value+'T12:00:00');
-    const prev = new Date(d); prev.setDate(d.getDate()-1);
-    const prevStr = prev.toISOString().slice(0,10);
-    document.getElementById('registro-period-info').innerHTML =
-      `📅 Período medido: <strong>7:00 a.m. del ${fmtDate(prevStr)}</strong><br>
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <strong>7:00 a.m. del ${fmtDate(this.value)}</strong>`;
-  });
-}
-
-document.getElementById('form-registro').addEventListener('submit', async function(e){
-  e.preventDefault();
-  const fecha = document.getElementById('input-fecha').value;
-  const mmVal = document.getElementById('input-mm').value;
-  const tempVal = document.getElementById('input-temp').value;
-  const notas  = document.getElementById('input-notas').value.trim();
-  const eId    = document.getElementById('edit-id').value;
-
-  if(!fecha || mmVal === ''){
-    showToast('⚠️ Ingrese la fecha y los mm de lluvia', true); return;
-  }
-  const mm   = parseFloat(mmVal);
-  const temp = tempVal !== '' ? parseFloat(tempVal) : null;
-
-  if(isNaN(mm) || mm < 0){ showToast('⚠️ Valor de lluvia inválido', true); return; }
-
-  const d = parseDate(fecha);
-  const prev = new Date(d); prev.setDate(d.getDate()-1);
-
-  const record = {
-    id: eId !== '' ? parseInt(eId) : Date.now(),
-    fechaLectura: fecha,
-    fechaInicio:  prev.toISOString().slice(0,10),
-    mmLluvia:     mm,
-    temperatura:  temp,
-    notas,
-    timestamp:    Date.now()
-  };
-
-  if(eId !== ''){
-    const idx = records.findIndex(r=>r.id===parseInt(eId));
-    if(idx>=0) records[idx] = record;
-  } else {
-    // Check duplicate
-    const dup = records.find(r=>r.fechaLectura===fecha);
-    if(dup && !confirm(`Ya existe un registro para el ${fmtDate(fecha)}. ¿Desea sobreescribirlo?`)){
-      return;
-    }
-    if(dup){ records = records.filter(r=>r.fechaLectura!==fecha); }
-    records.push(record);
-  }
-
-  saveRecords(records);
-  showToast('✅ Registro guardado correctamente');
-
-  // Auto-sync
-  if(config.autoSync && config.scriptUrl){
-    await syncRecord(record);
-  }
-
-  showScreen('home');
-});
-
-document.getElementById('btn-cancel-registro').addEventListener('click', ()=> {
-  showScreen(editingId != null ? 'historial' : 'home');
-});
-
-/* =========================================
    HISTORIAL
    ========================================= */
 let histFilter = 'all';
-let deleteTarget = null;
 
 function renderHistorial(){
-  const sorted = [...records].sort((a,b)=> b.fechaLectura.localeCompare(a.fechaLectura));
+  const sorted = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio));
   document.getElementById('hist-count').textContent = records.length;
 
   // Build month filters
-  const months = [...new Set(records.map(r=>getMonthYear(r.fechaLectura)))].sort((a,b)=>b.localeCompare(a));
+  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort((a,b)=>b.localeCompare(a));
   const filterRow = document.getElementById('filter-row');
   filterRow.innerHTML = `<button class="filter-btn ${histFilter==='all'?'active':''}" data-filter="all">Todos</button>`;
   months.forEach(m=>{
@@ -1061,7 +746,7 @@ function renderHistorial(){
   );
 
   // Filter records
-  const filtered = histFilter==='all' ? sorted : sorted.filter(r=>getMonthYear(r.fechaLectura)===histFilter);
+  const filtered = histFilter==='all' ? sorted : sorted.filter(r=>getMonthYear(r.fechaInicio)===histFilter);
 
   const list = document.getElementById('historial-list');
   if(!filtered.length){
@@ -1074,7 +759,7 @@ function renderHistorial(){
     const dayNum = d.getDate().toString().padStart(2,'0');
     const monStr = d.toLocaleDateString('es-CR',{month:'short'}).toUpperCase();
     return `
-      <div class="record-card" data-id="${r.id}">
+      <div class="record-card">
         <div class="record-day">
           <div class="record-day-num">${dayNum}</div>
           <div class="record-day-mon">${monStr}</div>
@@ -1082,42 +767,15 @@ function renderHistorial(){
         <div class="record-data">
           <div class="record-vals">
             <span class="record-mm">🌧️ ${(r.mmLluvia||0).toFixed(1)} mm</span>
-            ${r.temperatura!=null ? `<span class="record-temp">🌡️ ${r.temperatura.toFixed(1)}°C</span>` : ''}
+            ${r.temperatura!=null ? `<span class="record-temp">🌡️ Med: ${r.temperatura.toFixed(1)}°C | Máx: ${r.tempMax!=null?r.tempMax.toFixed(1):'—'} | Mín: ${r.tempMin!=null?r.tempMin.toFixed(1):'—'}</span>` : ''}
+            ${r.humedad!=null ? `<span class="record-temp" style="color:#48cae4">💧 Med: ${Math.round(r.humedad)}% | Máx: ${r.humMax!=null?Math.round(r.humMax):'—'} | Mín: ${r.humMin!=null?Math.round(r.humMin):'—'}</span>` : ''}
           </div>
           <div class="record-period">Período: 7am ${fmtDateShort(r.fechaInicio)} → 7am ${fmtDateShort(r.fechaLectura)}</div>
           ${r.notas ? `<div class="record-notes">${r.notas}</div>` : ''}
         </div>
-        <div class="record-actions">
-          <button class="act-btn edit-btn" data-id="${r.id}" title="Editar">✏️</button>
-          <button class="act-btn del act-del-btn" data-id="${r.id}" title="Eliminar">🗑️</button>
-        </div>
       </div>`;
   }).join('');
-
-  list.querySelectorAll('.edit-btn').forEach(b=>
-    b.addEventListener('click',()=>{ editingId=parseInt(b.dataset.id); showScreen('registro'); setupRegistroForm(editingId); })
-  );
-  list.querySelectorAll('.act-del-btn').forEach(b=>
-    b.addEventListener('click',()=>{ deleteTarget=parseInt(b.dataset.id); openDeleteModal(); })
-  );
 }
-
-// Delete modal
-function openDeleteModal(){ document.getElementById('modal-delete').classList.add('open'); }
-function closeDeleteModal(){ document.getElementById('modal-delete').classList.remove('open'); deleteTarget=null; }
-document.getElementById('modal-cancel').addEventListener('click', closeDeleteModal);
-document.getElementById('modal-confirm').addEventListener('click', ()=>{
-  if(deleteTarget!=null){
-    records = records.filter(r=>r.id!==deleteTarget);
-    saveRecords(records);
-    showToast('🗑️ Registro eliminado');
-    renderHistorial();
-  }
-  closeDeleteModal();
-});
-document.getElementById('modal-delete').addEventListener('click', e=>{
-  if(e.target===e.currentTarget) closeDeleteModal();
-});
 
 /* =========================================
    ESTADÍSTICAS
@@ -1131,7 +789,7 @@ function populateMonthSelector(){
   // All unique months from records, sorted newest first, plus current month always present
   const allMonths = [...new Set([
     currentMonthStr(),
-    ...records.map(r => getMonthYear(r.fechaLectura))
+    ...records.map(r => getMonthYear(r.fechaInicio))
   ])].sort((a,b)=>b.localeCompare(a));
 
   sel.innerHTML = allMonths.map(m => {
@@ -1159,8 +817,8 @@ function renderStats(){
   populateMonthSelector();
 
   const cm = selectedStatsMonth;
-  const monthRecs = records.filter(r=>getMonthYear(r.fechaLectura)===cm)
-    .sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
+  const monthRecs = records.filter(r=>getMonthYear(r.fechaInicio)===cm)
+    .sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
 
   // Summary stats
   const totalMm = monthRecs.reduce((s,r)=>s+(r.mmLluvia||0),0);
@@ -1180,7 +838,7 @@ function renderStats(){
 
   if(mainChart) mainChart.destroy();
   const ctx = document.getElementById('main-chart').getContext('2d');
-  const labels = monthRecs.map(r => parseDate(r.fechaLectura).getDate());
+  const labels = monthRecs.map(r => parseDate(r.fechaInicio).getDate());
 
   if(statsTab==='lluvia'){
     const data = monthRecs.map(r=>r.mmLluvia||0);
@@ -1198,53 +856,132 @@ function renderStats(){
       },
       options: chartOptions('mm')
     });
-  } else {
-    const data = monthRecs.map(r=>r.temperatura??null);
+  } else if (statsTab==='temperatura') {
+    const dataMed = monthRecs.map(r=>r.temperatura??null);
+    const dataMax = monthRecs.map(r=>r.tempMax??null);
+    const dataMin = monthRecs.map(r=>r.tempMin??null);
+    const hasMaxMin = monthRecs.some(r=>r.tempMax!=null || r.tempMin!=null);
+    
+    const datasets = [
+      {
+        label:'T. Media',
+        data: dataMed,
+        borderColor:'#ffd166',
+        backgroundColor:'rgba(255,209,102,0.1)',
+        pointBackgroundColor:'#ffd166',
+        tension:0.4, fill:false, spanGaps:true,
+      }
+    ];
+    if(hasMaxMin){
+      datasets.push(
+        {
+          label:'T. Máxima',
+          data: dataMax,
+          borderColor:'#ef476f',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#ef476f',
+          tension:0.4, fill:false, spanGaps:true,
+        },
+        {
+          label:'T. Mínima',
+          data: dataMin,
+          borderColor:'#00b4d8',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#00b4d8',
+          tension:0.4, fill:false, spanGaps:true,
+        }
+      );
+    }
     mainChart = new Chart(ctx,{
       type:'line',
-      data:{
-        labels,
-        datasets:[{
-          label:'Temperatura (°C)',
-          data,
-          borderColor:'#ffd166',
-          backgroundColor:'rgba(255,209,102,0.1)',
-          pointBackgroundColor:'#ffd166',
-          tension:0.4, fill:true, spanGaps:true,
-        }]
-      },
-      options: chartOptions('°C')
+      data:{ labels, datasets },
+      options: chartOptions('°C', hasMaxMin)
+    });
+  } else if (statsTab==='humedad') {
+    const dataMed = monthRecs.map(r=>r.humedad??null);
+    const dataMax = monthRecs.map(r=>r.humMax??null);
+    const dataMin = monthRecs.map(r=>r.humMin??null);
+    const hasMaxMin = monthRecs.some(r=>r.humMax!=null || r.humMin!=null);
+    
+    const datasets = [
+      {
+        label:'H. Media',
+        data: dataMed,
+        borderColor:'#48cae4',
+        backgroundColor:'rgba(72,202,228,0.1)',
+        pointBackgroundColor:'#48cae4',
+        tension:0.4, fill:false, spanGaps:true,
+      }
+    ];
+    if(hasMaxMin){
+      datasets.push(
+        {
+          label:'H. Máxima',
+          data: dataMax,
+          borderColor:'#90e0ef',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#90e0ef',
+          tension:0.4, fill:false, spanGaps:true,
+        },
+        {
+          label:'H. Mínima',
+          data: dataMin,
+          borderColor:'#0077b6',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#0077b6',
+          tension:0.4, fill:false, spanGaps:true,
+        }
+      );
+    }
+    mainChart = new Chart(ctx,{
+      type:'line',
+      data:{ labels, datasets },
+      options: chartOptions('%', hasMaxMin)
     });
   }
 }
 
-function chartOptions(unit){
+function chartOptions(unit, showLegend = false){
   return {
     responsive:true, maintainAspectRatio:false,
     plugins:{
-      legend:{display:false},
+      legend:{
+        display:showLegend, 
+        labels:{color:'#7bb8d4', boxWidth:12, font:{size:11, family:'Inter'}}
+      },
       tooltip:{
-        callbacks:{ label: c=>c.parsed.y!=null?c.parsed.y.toFixed(1)+' '+unit:'' },
+        callbacks:{ 
+          label: c => {
+            const val = c.parsed.y;
+            return val != null ? (c.dataset.label + ': ' + val.toFixed(1) + ' ' + unit) : '';
+          }
+        },
         backgroundColor:'rgba(6,13,31,0.9)', borderColor:'rgba(0,180,216,0.3)',
         borderWidth:1, titleColor:'#90e0ef', bodyColor:'#e0f4ff',
       }
     },
     scales:{
       x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}} },
-      y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}}, beginAtZero:true }
+      y:{ 
+        grid:{color:'rgba(255,255,255,0.04)'}, 
+        ticks:{color:'#3d6e8a',font:{size:10}}, 
+        beginAtZero: unit !== '°C',
+        min: unit === '°C' ? 15 : undefined,
+        max: unit === '%' ? 100 : undefined
+      }
     }
   };
 }
 
 function renderAnnualTable(){
-  const months = [...new Set(records.map(r=>getMonthYear(r.fechaLectura)))].sort();
+  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort();
   const tbody = document.getElementById('annual-tbody');
   if(!months.length){
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);padding:20px">Sin datos</td></tr>';
     return;
   }
   tbody.innerHTML = months.map(m=>{
-    const recs = records.filter(r=>getMonthYear(r.fechaLectura)===m);
+    const recs = records.filter(r=>getMonthYear(r.fechaInicio)===m);
     const total = recs.reduce((s,r)=>s+(r.mmLluvia||0),0);
     const dias  = recs.filter(r=>r.mmLluvia>0).length;
     const temps = recs.filter(r=>r.temperatura!=null && r.temperatura!=='');
@@ -1263,201 +1000,23 @@ document.querySelectorAll('.stats-tab').forEach(t=>
 );
 
 /* =========================================
-   CONFIGURACIÓN
-   ========================================= */
-function renderConfig(){
-  document.getElementById('config-script-url').value  = config.scriptUrl||'';
-  document.getElementById('config-operador').value    = config.operador||'';
-  document.getElementById('config-auto-sync').checked = config.autoSync||false;
-  document.getElementById('config-notif').checked     = config.notifEnabled||false;
-  document.getElementById('config-notif-time').value  = config.notifTime||'07:15';
-  document.getElementById('config-total-records').textContent = records.length;
-  updateSyncStatusUI();
-  updateNotifStatus();
-  renderAppsScriptCode();
-}
-
-function renderAppsScriptCode(){
-  const code = `function doPost(e) {
-  var data = JSON.parse(e.postData.contents);
-  var ss = SpreadsheetApp.openById('TU_SPREADSHEET_ID');
-  var sheet = ss.getSheetByName('Datos') || ss.insertSheet('Datos');
-  
-  // Encabezados si está vacío
-  if(sheet.getLastRow() === 0){
-    sheet.appendRow(['ID','Fecha Lectura','Fecha Inicio',
-      'Lluvia (mm)','Temperatura (°C)','Notas',
-      'Operador','Timestamp']);
-  }
-  sheet.appendRow([
-    data.id, data.fechaLectura, data.fechaInicio,
-    data.mmLluvia, data.temperatura, data.notas,
-    data.operador, new Date(data.timestamp)
-  ]);
-  return ContentService
-    .createTextOutput(JSON.stringify({status:'ok'}))
-    .setMimeType(ContentService.MimeType.JSON);
-}`;
-  document.getElementById('apps-script-code').textContent = code;
-}
-
-document.getElementById('show-instructions').addEventListener('click', e=>{
-  e.preventDefault();
-  const box = document.getElementById('gsheets-instructions');
-  box.style.display = box.style.display==='none'?'block':'none';
-  e.target.textContent = box.style.display==='none'?'Ver instrucciones de configuración ▼':'Ocultar instrucciones ▲';
-});
-
-function updateSyncStatusUI(){
-  const box = document.getElementById('sync-status-box');
-  if(!config.scriptUrl){
-    box.className='sync-status idle'; box.textContent='⏸️ Sin configurar';
-  } else if(config.lastSync){
-    box.className='sync-status ok';
-    box.textContent='✅ Última sync: '+new Date(config.lastSync).toLocaleString('es-CR');
-  } else {
-    box.className='sync-status idle'; box.textContent='🔄 URL configurada — sin sync aún';
-  }
-}
-
-document.getElementById('btn-save-config').addEventListener('click', ()=>{
-  config.scriptUrl    = document.getElementById('config-script-url').value.trim();
-  config.operador     = document.getElementById('config-operador').value.trim();
-  config.autoSync     = document.getElementById('config-auto-sync').checked;
-  config.notifEnabled = document.getElementById('config-notif').checked;
-  config.notifTime    = document.getElementById('config-notif-time').value;
-  saveConfig(config);
-  if(config.notifEnabled) requestNotifPermission();
-  scheduleReminderCheck();
-  showToast('✅ Configuración guardada');
-});
-
-document.getElementById('btn-test-sync').addEventListener('click', async()=>{
-  if(!config.scriptUrl){ showToast('⚠️ Ingrese la URL del Apps Script primero', true); return; }
-  const btn = document.getElementById('btn-test-sync');
-  btn.innerHTML = '⏳ &nbsp;Probando...'; btn.disabled=true;
-  const ok = await syncRecord({ id: 0, fechaLectura: todayStr(), fechaInicio: yesterdayStr(),
-    mmLluvia: 0, temperatura: 25, notas: 'Test de conexión', timestamp: Date.now() });
-  btn.innerHTML = '🔄 &nbsp;Probar Conexión'; btn.disabled=false;
-  if(ok){ config.lastSync=Date.now(); saveConfig(config); updateSyncStatusUI(); }
-});
-
-/* =========================================
-   GOOGLE SHEETS SYNC
-   ========================================= */
-async function syncRecord(record){
-  if(!config.scriptUrl) return false;
-  try {
-    const payload = { ...record, operador: config.operador };
-    const resp = await fetch(config.scriptUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
-    const json = await resp.json();
-    if(json.status==='ok'){
-      showToast('☁️ Sincronizado con Google Sheets');
-      config.lastSync = Date.now(); saveConfig(config);
-      return true;
-    }
-  } catch(err) {
-    console.error('Sync error:', err);
-    showToast('⚠️ Error al sincronizar: '+err.message, true);
-  }
-  return false;
-}
-
-document.getElementById('btn-sync-now').addEventListener('click', async()=>{
-  if(!config.scriptUrl){ showToast('⚠️ Configure la URL de Google Sheets primero', true); return; }
-  const btn = document.getElementById('btn-sync-now');
-  btn.classList.add('syncing');
-  let ok = 0;
-  for(const r of records){
-    const res = await syncRecord(r);
-    if(res) ok++;
-  }
-  btn.classList.remove('syncing');
-  showToast(`☁️ ${ok} registros sincronizados`);
-});
-
-/* =========================================
-   NOTIFICACIONES / RECORDATORIO
-   ========================================= */
-function updateNotifStatus(){
-  const el = document.getElementById('notif-status');
-  if(!('Notification' in window)){
-    el.textContent = '⚠️ Este navegador no soporta notificaciones'; return;
-  }
-  if(Notification.permission==='granted'){
-    el.style.color='var(--success)';
-    el.textContent = '✅ Permiso concedido · Recordatorio configurado para las '+config.notifTime;
-  } else if(Notification.permission==='denied'){
-    el.style.color='var(--danger)';
-    el.textContent = '❌ Permiso denegado. Habilítalo en la configuración del navegador.';
-  } else {
-    el.style.color='var(--text3)';
-    el.textContent = 'ℹ️ Se solicitará permiso al activar el recordatorio.';
-  }
-}
-
-function requestNotifPermission(){
-  if(!('Notification' in window)) return;
-  Notification.requestPermission().then(p=>{
-    updateNotifStatus();
-    if(p==='granted') showToast('🔔 Notificaciones activadas');
-    else showToast('⚠️ Permiso de notificaciones denegado', true);
-  });
-}
-
-document.getElementById('config-notif').addEventListener('change', function(){
-  if(this.checked) requestNotifPermission();
-});
-
-document.getElementById('btn-test-notif').addEventListener('click', ()=>{
-  if(Notification.permission!=='granted'){
-    requestNotifPermission(); return;
-  }
-  new Notification('🌧️ Pluviómetro INVU', {
-    body: 'Recuerde ingresar la lectura de lluvia y temperatura de hoy.',
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌧️</text></svg>'
-  });
-  showToast('🔔 Notificación de prueba enviada');
-});
-
-// Check if it's time to show reminder
-function scheduleReminderCheck(){
-  if(!config.notifEnabled) return;
-  const [h,m] = (config.notifTime||'07:15').split(':').map(Number);
-  const now = new Date();
-  const target = new Date(now);
-  target.setHours(h, m, 0, 0);
-  if(target <= now) target.setDate(target.getDate()+1);
-  const ms = target - now;
-  setTimeout(()=>{
-    if(config.notifEnabled && Notification.permission==='granted'){
-      new Notification('🌧️ Pluviómetro INVU — Recordatorio', {
-        body: `Buenos días. Recuerde ingresar la lectura de hoy (${fmtDate(todayStr())}).`,
-        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌧️</text></svg>'
-      });
-    }
-    // Re-schedule for next day
-    scheduleReminderCheck();
-  }, ms);
-}
-
-/* =========================================
    EXPORT CSV
    ========================================= */
 function exportCSV(){
   if(!records.length){ showToast('⚠️ No hay datos para exportar', true); return; }
   const sorted = [...records].sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
   const rows = [
-    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temperatura (°C)','Notas','Timestamp']
+    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temp Media (°C)','Temp Máx (°C)','Temp Mín (°C)','Hum Media (%)','Hum Máx (%)','Hum Mín (%)','Notas','Timestamp']
   ];
   sorted.forEach(r=>rows.push([
     r.id, r.fechaLectura, r.fechaInicio,
     (r.mmLluvia||0).toFixed(1),
     r.temperatura!=null ? r.temperatura.toFixed(1) : '',
+    r.tempMax!=null ? r.tempMax.toFixed(1) : '',
+    r.tempMin!=null ? r.tempMin.toFixed(1) : '',
+    r.humedad!=null ? r.humedad.toFixed(1) : '',
+    r.humMax!=null ? r.humMax.toFixed(1) : '',
+    r.humMin!=null ? r.humMin.toFixed(1) : '',
     '"'+(r.notas||'').replace(/"/g,'""')+'"',
     new Date(r.timestamp).toISOString()
   ]));
@@ -1465,12 +1024,29 @@ function exportCSV(){
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `pluviometro_liberia_${todayStr()}.csv`;
+  a.download = `pluviometro_liberia_visor_${todayStr()}.csv`;
   a.click();
   showToast('📥 CSV exportado correctamente');
 }
 document.getElementById('btn-export').addEventListener('click', exportCSV);
-document.getElementById('btn-export-config').addEventListener('click', exportCSV);
+
+function reloadRecords(){
+  const latest = loadRecords();
+  if(JSON.stringify(latest) !== JSON.stringify(records)){
+    records = latest;
+    if(currentScreen === 'home') renderHome();
+    else if(currentScreen === 'historial') renderHistorial();
+    else if(currentScreen === 'stats') renderStats();
+  }
+}
+
+window.addEventListener('storage', (event) => {
+  if(event.key === DB_KEY) reloadRecords();
+});
+
+window.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') reloadRecords();
+});
 
 /* =========================================
    TOAST
@@ -1487,15 +1063,20 @@ function showToast(msg, isError=false){
 /* =========================================
    INIT
    ========================================= */
-renderHome();
-scheduleReminderCheck();
-
-// Load config notification
-if(config.notifEnabled && Notification.permission==='granted'){
-  updateNotifStatus();
+if(window.location.protocol === 'file:'){
+  showToast('⚠️ No abra este archivo como file://. Use un servidor local (http://localhost).', true);
+  console.warn('La app se cargó desde file:// y fetch puede fallar. Inicie un servidor local o use Live Server.');
 }
 
-console.log('%c🌧️ Pluviómetro INVU · Liberia Centro, Guanacaste', 'color:#00b4d8;font-size:14px;font-weight:bold');
+// Try loading from Google Sheets first, then fall back to local CSV
+const GOOGLE_SHEET_ID = '1J25tcSTiHlOtEuEGtyN-WFsHvsqnGLnPnrtaW03c6Q4';
+(async ()=>{
+  const ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
+  if(!ok) await loadRecordsFromStaticCSV('data/pluviometro.csv');
+  renderHome();
+})();
+
+console.log('%c🌧️ Pluviómetro INVU — Visor de Datos · Liberia Centro, Guanacaste', 'color:#00b4d8;font-size:14px;font-weight:bold');
 console.log('%cRegistros cargados: ' + records.length, 'color:#90e0ef');
 </script>
 </body>
