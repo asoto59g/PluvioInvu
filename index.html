@@ -719,9 +719,14 @@
           </div>
           <span id="config-total-records" style="font-size:18px;font-weight:800;color:var(--primary)">0</span>
         </div>
-        <button class="btn-secondary" id="btn-export-config" style="margin-top:10px">
-          📥 Exportar todos los datos (CSV)
-        </button>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn-secondary" id="btn-export-config">
+            📥 Exportar todos los datos (CSV)
+          </button>
+          <button class="btn-secondary" id="btn-reload-csv">
+            🔃 Recargar desde CSV
+          </button>
+        </div>
       </div>
 
       <!-- GITHUB CSV -->
@@ -870,12 +875,39 @@ function csvFromRecords(arr){
   return rows.map(r=>r.join(',')).join('\n');
 }
 
+function parseCSVLine(line){
+  const columns = [];
+  let value = '';
+  let inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(line[i+1] === '"'){ value += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        value += ch;
+      }
+    } else {
+      if(ch === '"'){
+        inQuotes = true;
+      } else if(ch === ','){
+        columns.push(value);
+        value = '';
+      } else {
+        value += ch;
+      }
+    }
+  }
+  columns.push(value);
+  return columns;
+}
+
 function parseCSVtoRecords(csv){
   const lines = csv.split(/\r?\n/).filter(l=>l.trim()!=='');
   if(lines.length < 2) return [];
-  const data = lines.slice(1).map(line=>{
-    // naive CSV split (values not containing unescaped commas expected)
-    const cols = line.split(',');
+  return lines.slice(1).map(line=>{
+    const cols = parseCSVLine(line);
     return {
       id: isFinite(Number(cols[0])) ? Number(cols[0]) : cols[0],
       fechaLectura: cols[1] || '',
@@ -887,11 +919,10 @@ function parseCSVtoRecords(csv){
       humedad: cols[7]!=='' ? parseFloat(cols[7]) : null,
       humMax: cols[8]!=='' ? parseFloat(cols[8]) : null,
       humMin: cols[9]!=='' ? parseFloat(cols[9]) : null,
-      notas: cols[10] ? cols[10].replace(/^"|"$/g,'').replace(/""/g,'"') : '',
+      notas: cols[10] || '',
       timestamp: cols[11] ? Date.parse(cols[11]) : Date.now()
     };
   });
-  return data;
 }
 
 async function githubGetContents(owner, repo, path, branch, token){
@@ -1708,6 +1739,14 @@ document.getElementById('btn-load-github').addEventListener('click', async ()=>{
   saveConfig(config);
   const ok = await loadRecordsFromGitHub();
   if(ok) renderHome();
+});
+
+// Reload from local CSV file (manual)
+document.getElementById('btn-reload-csv').addEventListener('click', async ()=>{
+  if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
+  const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
+  if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
+  else{ showToast('⚠️ No fue posible cargar el CSV local', true); }
 });
 
 document.getElementById('btn-test-sync').addEventListener('click', async()=>{
