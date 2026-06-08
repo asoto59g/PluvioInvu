@@ -451,6 +451,40 @@ function loadRecords() {
 
 let records = loadRecords();
 
+/* Simple CSV parser to match editor's CSV structure */
+function parseCSVtoRecords(csv){
+  const lines = csv.split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(lines.length < 2) return [];
+  return lines.slice(1).map(line=>{
+    const cols = line.split(',');
+    return {
+      id: isFinite(Number(cols[0])) ? Number(cols[0]) : cols[0],
+      fechaLectura: cols[1] || '',
+      fechaInicio: cols[2] || '',
+      mmLluvia: parseFloat(cols[3]) || 0,
+      temperatura: cols[4]!=='' ? parseFloat(cols[4]) : null,
+      tempMax: cols[5]!=='' ? parseFloat(cols[5]) : null,
+      tempMin: cols[6]!=='' ? parseFloat(cols[6]) : null,
+      humedad: cols[7]!=='' ? parseFloat(cols[7]) : null,
+      humMax: cols[8]!=='' ? parseFloat(cols[8]) : null,
+      humMin: cols[9]!=='' ? parseFloat(cols[9]) : null,
+      notas: cols[10] ? cols[10].replace(/^"|"$/g,'').replace(/""/g,'"') : '',
+      timestamp: cols[11] ? Date.parse(cols[11]) : Date.now()
+    };
+  });
+}
+
+async function loadRecordsFromStaticCSV(path){
+  try{
+    const resp = await fetch(path, {cache:'no-store'});
+    if(!resp.ok) return false;
+    const csv = await resp.text();
+    const recs = parseCSVtoRecords(csv);
+    if(recs && recs.length){ records = recs; localStorage.setItem(DB_KEY, JSON.stringify(records)); showToast('✅ Datos cargados desde CSV'); return true; }
+  }catch(err){ console.warn('loadRecordsFromStaticCSV error', err); }
+  return false;
+}
+
 /* =========================================
    DATE UTILITIES
    ========================================= */
@@ -966,7 +1000,8 @@ if(window.location.protocol === 'file:'){
   console.warn('La app se cargó desde file:// y fetch puede fallar. Inicie un servidor local o use Live Server.');
 }
 
-renderHome();
+// Try loading static CSV first, then render
+loadRecordsFromStaticCSV('data/pluviometro.csv').then(ok=>{ renderHome(); });
 
 console.log('%c🌧️ Pluviómetro INVU — Visor de Datos · Liberia Centro, Guanacaste', 'color:#00b4d8;font-size:14px;font-weight:bold');
 console.log('%cRegistros cargados: ' + records.length, 'color:#90e0ef');
