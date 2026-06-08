@@ -514,6 +514,24 @@ function parseCSVtoRecords(csv){
   });
 }
 
+// Load from Google Sheets export CSV
+async function loadRecordsFromGoogleSheets(sheetId){
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+  try{
+    const resp = await fetch(url, {cache:'no-store'});
+    if(!resp.ok) return false;
+    const csv = await resp.text();
+    const recs = parseCSVtoRecords(csv);
+    if(recs && recs.length){ 
+      records = recs; 
+      localStorage.setItem(DB_KEY, JSON.stringify(records)); 
+      showToast('✅ Datos cargados desde Google Sheets');
+      return true; 
+    }
+  }catch(err){ console.warn('loadRecordsFromGoogleSheets error', err); }
+  return false;
+}
+
 async function loadRecordsFromStaticCSV(path){
   try{
     const resp = await fetch(path, {cache:'no-store'});
@@ -1040,25 +1058,32 @@ if(window.location.protocol === 'file:'){
   console.warn('La app se cargó desde file:// y fetch puede fallar. Inicie un servidor local o use Live Server.');
 }
 
-// Try loading static CSV first, then render
-loadRecordsFromStaticCSV('data/pluviometro.csv').then(ok=>{ renderHome(); });
+// Try loading from Google Sheets first, then fall back to local CSV
+const GOOGLE_SHEET_ID = '1J25tcSTiHlOtEuEGtyN-WFsHvsqnGLnPnrtaW03c6Q4';
+(async ()=>{
+  const ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
+  if(!ok) await loadRecordsFromStaticCSV('data/pluviometro.csv');
+  renderHome();
+})();
 
 // Hook reload button
 if(document.getElementById('btn-reload-csv')){
   document.getElementById('btn-reload-csv').addEventListener('click', async ()=>{
-    if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
-    const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
-    if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
-    else{ showToast('⚠️ No fue posible cargar CSV', true); }
+    if(!confirm('Se recargarán los datos desde Google Sheets. ¿Desea continuar?')) return;
+    let ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
+    if(!ok) ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
+    if(ok){ renderHome(); showToast('✅ Datos recargados'); }
+    else{ showToast('⚠️ No fue posible recargar datos', true); }
   });
 }
 
 if(document.getElementById('btn-reload-csv-main')){
   document.getElementById('btn-reload-csv-main').addEventListener('click', async ()=>{
-    if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
-    const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
-    if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
-    else{ showToast('⚠️ No fue posible cargar CSV', true); }
+    if(!confirm('Se recargarán los datos desde Google Sheets. ¿Desea continuar?')) return;
+    let ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
+    if(!ok) ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
+    if(ok){ renderHome(); showToast('✅ Datos recargados'); }
+    else{ showToast('⚠️ No fue posible recargar datos', true); }
   });
 }
 
