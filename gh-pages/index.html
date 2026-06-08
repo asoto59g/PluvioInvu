@@ -320,6 +320,12 @@
         <div class="hero-date" id="home-date-label"></div>
         <div class="hero-period" id="home-period-text"></div>
 
+        <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+          <button class="btn-primary" id="btn-reload-csv-main" style="font-size:13px;padding:10px 14px;white-space:nowrap;">
+            🔃 Recargar desde CSV
+          </button>
+        </div>
+
         <div class="stats-grid" id="home-stats-grid">
           <div class="stat-mini">
             <div class="stat-mini-val" id="stat-month-mm">—</div>
@@ -1035,6 +1041,15 @@ loadRecordsFromStaticCSV('data/pluviometro.csv').then(ok=>{ renderHome(); });
 // Hook reload button
 if(document.getElementById('btn-reload-csv')){
   document.getElementById('btn-reload-csv').addEventListener('click', async ()=>{
+    if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
+    const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
+    if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
+    else{ showToast('⚠️ No fue posible cargar CSV', true); }
+  });
+}
+
+if(document.getElementById('btn-reload-csv-main')){
+  document.getElementById('btn-reload-csv-main').addEventListener('click', async ()=>{
     if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
     const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
     if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
