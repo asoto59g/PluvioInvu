@@ -719,60 +719,9 @@
           </div>
           <span id="config-total-records" style="font-size:18px;font-weight:800;color:var(--primary)">0</span>
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn-secondary" id="btn-export-config">
-            📥 Exportar todos los datos (CSV)
-          </button>
-          <button class="btn-secondary" id="btn-reload-csv">
-            🔃 Recargar desde CSV
-          </button>
-        </div>
-      </div>
-
-      <!-- GITHUB CSV -->
-      <div class="card config-section">
-        <div class="config-section-title">📁 GitHub CSV</div>
-        <p class="config-desc">Guarda los datos como un archivo CSV en un repositorio de GitHub. Para escribir necesitas un token con permisos de `repo`.</p>
-
-        <div class="form-group">
-          <label class="form-label">Habilitar GitHub</label>
-          <label class="toggle">
-            <input type="checkbox" id="config-github-enabled" />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Owner</label>
-            <input type="text" id="config-github-owner" class="form-control" placeholder="usuario" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Repo</label>
-            <input type="text" id="config-github-repo" class="form-control" placeholder="repositorio" />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Ruta del archivo</label>
-            <input type="text" id="config-github-path" class="form-control" placeholder="data/pluviometro.csv" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Branch</label>
-            <input type="text" id="config-github-branch" class="form-control" placeholder="main" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Token (secreto)</label>
-          <input type="password" id="config-github-token" class="form-control" placeholder="ghp_... (opcional para lectura pública)" />
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn-secondary" id="btn-test-github">🔗 Probar Conexión</button>
-          <button class="btn-primary" id="btn-load-github">📥 Cargar desde GitHub</button>
-        </div>
+        <button class="btn-secondary" id="btn-export-config" style="margin-top:10px">
+          📥 Exportar todos los datos (CSV)
+        </button>
       </div>
 
       <button class="btn-primary" id="btn-save-config">💾 &nbsp;Guardar Configuración</button>
@@ -829,195 +778,17 @@ function loadRecords() {
 }
 function saveRecords(r) {
   localStorage.setItem(DB_KEY, JSON.stringify(r));
-  // If configured, also persist to GitHub CSV (async, best-effort)
-  if(config && config.github && config.github.enabled){
-    saveCSVToGitHub(r).catch(err=> console.warn('GitHub save failed', err));
-  } else {
-    // No token/remote: offer CSV download so user can manually upload to repo
-    try{ exportCSV(); } catch(e){/* ignore */}
-  }
 }
 function loadConfig() {
   const defaults = {
     scriptUrl: '', operador: '', autoSync: false,
     notifEnabled: false, notifTime: '07:15',
-    lastSync: null,
-    github: {
-      enabled: false,
-      owner: '', repo: '', path: 'data/pluviometro.csv', branch: 'main', token: ''
-    }
+    lastSync: null
   };
   try { return { ...defaults, ...JSON.parse(localStorage.getItem(CFG_KEY)) }; } catch { return defaults; }
 }
 function saveConfig(c) {
   localStorage.setItem(CFG_KEY, JSON.stringify(c));
-}
-
-/* =========================================
-   GITHUB CSV READ / WRITE
-   (Uses GitHub Contents API when token is present, otherwise tries raw.githubusercontent)
-   ========================================= */
-function csvFromRecords(arr){
-  const rows = [['ID','Fecha Lectura','Fecha Inicio','Lluvia (mm)','Temp. Media (°C)','Temp. Máxima (°C)','Temp. Mínima (°C)','Humedad Media (%)','Humedad Máxima (%)','Humedad Mínima (%)','Notas','Timestamp']];
-  const sorted = [...arr].sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
-  sorted.forEach(r=> rows.push([
-    r.id, r.fechaLectura, r.fechaInicio,
-    (r.mmLluvia||0).toFixed(1),
-    r.temperatura!=null ? r.temperatura.toFixed(1) : '',
-    r.tempMax!=null ? r.tempMax.toFixed(1) : '',
-    r.tempMin!=null ? r.tempMin.toFixed(1) : '',
-    r.humedad!=null ? r.humedad.toFixed(1) : '',
-    r.humMax!=null ? r.humMax.toFixed(1) : '',
-    r.humMin!=null ? r.humMin.toFixed(1) : '',
-    '"'+(r.notas||'').replace(/"/g,'""')+'"',
-    new Date(r.timestamp).toISOString()
-  ]));
-  return rows.map(r=>r.join(',')).join('\n');
-}
-
-function parseCSVLine(line){
-  const columns = [];
-  let value = '';
-  let inQuotes = false;
-  for(let i = 0; i < line.length; i++){
-    const ch = line[i];
-    if(inQuotes){
-      if(ch === '"'){
-        if(line[i+1] === '"'){ value += '"'; i++; }
-        else { inQuotes = false; }
-      } else {
-        value += ch;
-      }
-    } else {
-      if(ch === '"'){
-        inQuotes = true;
-      } else if(ch === ','){
-        columns.push(value);
-        value = '';
-      } else {
-        value += ch;
-      }
-    }
-  }
-  columns.push(value);
-  return columns;
-}
-
-function parseCSVtoRecords(csv){
-  const lines = csv.split(/\r?\n/).filter(l=>l.trim()!=='');
-  if(lines.length < 2) return [];
-  const headers = parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());
-  const idxOf = name => headers.findIndex(h => h.includes(name));
-  const idIdx = idxOf('id');
-  const fechaLecturaIdx = idxOf('fecha lect');
-  const fechaInicioIdx = headers.findIndex(h=>h.includes('fecha inicio')||h.includes('periodo'));
-  const mmIdx = headers.findIndex(h=>h.includes('lluv'));
-  const tempIdx = headers.findIndex(h=>h.includes('temp'));
-  const notasIdx = headers.findIndex(h=>h.includes('nota'));
-  const tsIdx = headers.findIndex(h=>h.includes('timestamp')||h.includes('time'));
-  return lines.slice(1).map(line=>{
-    const cols = parseCSVLine(line);
-    return {
-      id: idIdx>-1 && cols[idIdx] ? (isFinite(Number(cols[idIdx])) ? Number(cols[idIdx]) : cols[idIdx]) : null,
-      fechaLectura: fechaLecturaIdx>-1 ? (cols[fechaLecturaIdx]||'') : (cols[1]||''),
-      fechaInicio: fechaInicioIdx>-1 ? (cols[fechaInicioIdx]||'') : (cols[2]||''),
-      mmLluvia: mmIdx>-1 ? parseFloat(cols[mmIdx])||0 : parseFloat(cols[3])||0,
-      temperatura: tempIdx>-1 && cols[tempIdx]!=='"' && cols[tempIdx]!=='' ? parseFloat(cols[tempIdx]) : null,
-      tempMax: null, tempMin: null, humedad: null, humMax: null, humMin: null,
-      notas: notasIdx>-1 ? (cols[notasIdx]||'') : (cols[5]||''),
-      timestamp: tsIdx>-1 && cols[tsIdx] ? Date.parse(cols[tsIdx]) : (cols[6]?Date.parse(cols[6]):Date.now())
-    };
-  });
-}
-
-async function githubGetContents(owner, repo, path, branch, token){
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`;
-  const headers = token ? { 'Authorization': 'token '+token, 'Accept':'application/vnd.github.v3+json' } : { 'Accept':'application/vnd.github.v3+json' };
-  const resp = await fetch(url, { headers });
-  if(!resp.ok) throw new Error('GitHub GET failed: '+resp.status);
-  return await resp.json();
-}
-
-async function githubPutContents(owner, repo, path, branch, token, contentBase64, message, sha){
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
-  const body = { message: message || 'Update pluviometro data', content: contentBase64, branch };
-  if(sha) body.sha = sha;
-  const headers = { 'Authorization':'token '+token, 'Accept':'application/vnd.github.v3+json' };
-  const resp = await fetch(url, { method:'PUT', headers, body: JSON.stringify(body) });
-  if(!resp.ok) throw new Error('GitHub PUT failed: '+resp.status);
-  return await resp.json();
-}
-
-async function loadRecordsFromGitHub(){
-  if(!config || !config.github || !config.github.enabled) return false;
-  const g = config.github;
-  try{
-    if(g.token){
-      const info = await githubGetContents(g.owner, g.repo, g.path, g.branch, g.token);
-      if(info && info.content){
-        const csv = atob(info.content.replace(/\n/g,''));
-        const recs = parseCSVtoRecords(csv);
-        records = recs;
-        saveRecords(records);
-        showToast('✅ Datos cargados desde GitHub');
-        return true;
-      }
-    } else {
-      // Try raw.githubusercontent (public repo)
-      const raw = `https://raw.githubusercontent.com/${g.owner}/${g.repo}/${g.branch}/${g.path}`;
-      const resp = await fetch(raw);
-      if(resp.ok){
-        const csv = await resp.text();
-        const recs = parseCSVtoRecords(csv);
-        records = recs;
-        saveRecords(records);
-        showToast('✅ Datos cargados desde GitHub (raw)');
-        return true;
-      }
-    }
-  }catch(err){ console.warn('loadRecordsFromGitHub error', err); }
-  return false;
-}
-
-async function saveCSVToGitHub(arr){
-  if(!config || !config.github || !config.github.enabled) throw new Error('GitHub not configured');
-  const g = config.github;
-  if(!g.owner || !g.repo || !g.path) throw new Error('GitHub repo/path missing');
-  const csv = csvFromRecords(arr);
-  const b64 = btoa(unescape(encodeURIComponent(csv)));
-  try{
-    // Need sha if file exists
-    let sha = null;
-    if(g.token){
-      try{ const info = await githubGetContents(g.owner, g.repo, g.path, g.branch, g.token); sha = info.sha; } catch(e){ sha = null; }
-      const res = await githubPutContents(g.owner, g.repo, g.path, g.branch, g.token, b64, 'Update pluviometro CSV', sha);
-      showToast('☁️ Datos guardados en GitHub');
-      return res;
-    } else {
-      throw new Error('Write to GitHub requires a token');
-    }
-  }catch(err){
-    console.error('saveCSVToGitHub failed', err);
-    showToast('⚠️ No fue posible guardar en GitHub: '+err.message, true);
-    throw err;
-  }
-}
-
-// Load a static CSV file (relative path) and replace local records
-async function loadRecordsFromStaticCSV(path){
-  try{
-    const resp = await fetch(path, {cache: 'no-store'});
-    if(!resp.ok) return false;
-    const csv = await resp.text();
-    const recs = parseCSVtoRecords(csv);
-    if(recs && recs.length){
-      records = recs;
-      saveRecords(records);
-      showToast('✅ Datos cargados desde archivo CSV local');
-      return true;
-    }
-  }catch(err){ console.warn('loadRecordsFromStaticCSV error', err); }
-  return false;
 }
 
 let records = loadRecords();
@@ -1634,15 +1405,6 @@ function renderConfig(){
   updateSyncStatusUI();
   updateNotifStatus();
   renderAppsScriptCode();
-  // GitHub config
-  if(config.github){
-    document.getElementById('config-github-enabled').checked = !!config.github.enabled;
-    document.getElementById('config-github-owner').value = config.github.owner || '';
-    document.getElementById('config-github-repo').value = config.github.repo || '';
-    document.getElementById('config-github-path').value = config.github.path || 'data/pluviometro.csv';
-    document.getElementById('config-github-branch').value = config.github.branch || 'main';
-    document.getElementById('config-github-token').value = config.github.token || '';
-  }
 }
 
 function renderAppsScriptCode(){
@@ -1696,62 +1458,10 @@ document.getElementById('btn-save-config').addEventListener('click', ()=>{
   config.autoSync     = document.getElementById('config-auto-sync').checked;
   config.notifEnabled = document.getElementById('config-notif').checked;
   config.notifTime    = document.getElementById('config-notif-time').value;
-  // Save GitHub config
-  config.github = config.github || {};
-  config.github.enabled = document.getElementById('config-github-enabled').checked;
-  config.github.owner = document.getElementById('config-github-owner').value.trim();
-  config.github.repo = document.getElementById('config-github-repo').value.trim();
-  config.github.path = document.getElementById('config-github-path').value.trim() || 'data/pluviometro.csv';
-  config.github.branch = document.getElementById('config-github-branch').value.trim() || 'main';
-  config.github.token = document.getElementById('config-github-token').value.trim();
   saveConfig(config);
-  if(config.github && config.github.enabled){ loadRecordsFromGitHub(); }
   if(config.notifEnabled) requestNotifPermission();
   scheduleReminderCheck();
   showToast('✅ Configuración guardada');
-});
-
-document.getElementById('btn-test-github').addEventListener('click', async ()=>{
-  const owner = document.getElementById('config-github-owner').value.trim();
-  const repo = document.getElementById('config-github-repo').value.trim();
-  const path = document.getElementById('config-github-path').value.trim() || 'data/pluviometro.csv';
-  const branch = document.getElementById('config-github-branch').value.trim() || 'main';
-  const token = document.getElementById('config-github-token').value.trim();
-  if(!owner || !repo){ showToast('⚠️ Owner y repo requeridos', true); return; }
-  try{
-    if(token){
-      await githubGetContents(owner, repo, path, branch, token);
-      showToast('✅ Conexión a GitHub OK');
-    } else {
-      // Try raw
-      const raw = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
-      const r = await fetch(raw);
-      if(r.ok) showToast('✅ Lectura pública desde raw.githubusercontent OK');
-      else showToast('⚠️ No fue posible leer desde raw.githubusercontent', true);
-    }
-  }catch(err){ showToast('⚠️ Error: '+err.message, true); }
-});
-
-document.getElementById('btn-load-github').addEventListener('click', async ()=>{
-  // Load and overwrite local records from GitHub
-  config.github = config.github || {};
-  config.github.owner = document.getElementById('config-github-owner').value.trim();
-  config.github.repo = document.getElementById('config-github-repo').value.trim();
-  config.github.path = document.getElementById('config-github-path').value.trim() || 'data/pluviometro.csv';
-  config.github.branch = document.getElementById('config-github-branch').value.trim() || 'main';
-  config.github.token = document.getElementById('config-github-token').value.trim();
-  config.github.enabled = document.getElementById('config-github-enabled').checked;
-  saveConfig(config);
-  const ok = await loadRecordsFromGitHub();
-  if(ok) renderHome();
-});
-
-// Reload from local CSV file (manual)
-document.getElementById('btn-reload-csv').addEventListener('click', async ()=>{
-  if(!confirm('Se sobrescribirán los datos locales con el archivo CSV. ¿Desea continuar?')) return;
-  const ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
-  if(ok){ renderHome(); showToast('✅ Datos recargados desde CSV'); }
-  else{ showToast('⚠️ No fue posible cargar el CSV local', true); }
 });
 
 document.getElementById('btn-test-sync').addEventListener('click', async()=>{
@@ -1941,15 +1651,6 @@ if(window.location.protocol === 'file:'){
 
 renderHome();
 scheduleReminderCheck();
-// If GitHub configured, attempt to load records from GitHub at startup
-if(config && config.github && config.github.enabled){
-  loadRecordsFromGitHub().then(ok=>{ if(ok) renderHome(); });
-}
-
-// If no GitHub, try loading static CSV from `data/pluviometro.csv`
-else {
-  loadRecordsFromStaticCSV('data/pluviometro.csv').then(ok=>{ if(ok) renderHome(); });
-}
 
 // Load config notification
 if(config.notifEnabled && Notification.permission==='granted'){
