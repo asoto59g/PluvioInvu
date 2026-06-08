@@ -306,7 +306,6 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="btn-export" title="Exportar CSV">📥</button>
-      <button class="icon-btn" id="btn-reload-csv" title="Recargar desde CSV">🔃</button>
     </div>
   </header>
 
@@ -319,12 +318,6 @@
         <div class="period-badge"><span class="dot"></span>Período de Medición</div>
         <div class="hero-date" id="home-date-label"></div>
         <div class="hero-period" id="home-period-text"></div>
-
-        <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
-          <button class="btn-primary" id="btn-reload-csv-main" style="font-size:13px;padding:10px 14px;white-space:nowrap;">
-            🔃 Recargar desde CSV
-          </button>
-        </div>
 
         <div class="stats-grid" id="home-stats-grid">
           <div class="stat-mini">
@@ -1065,27 +1058,6 @@ const GOOGLE_SHEET_ID = '1J25tcSTiHlOtEuEGtyN-WFsHvsqnGLnPnrtaW03c6Q4';
   if(!ok) await loadRecordsFromStaticCSV('data/pluviometro.csv');
   renderHome();
 })();
-
-// Hook reload button
-if(document.getElementById('btn-reload-csv')){
-  document.getElementById('btn-reload-csv').addEventListener('click', async ()=>{
-    if(!confirm('Se recargarán los datos desde Google Sheets. ¿Desea continuar?')) return;
-    let ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
-    if(!ok) ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
-    if(ok){ renderHome(); showToast('✅ Datos recargados'); }
-    else{ showToast('⚠️ No fue posible recargar datos', true); }
-  });
-}
-
-if(document.getElementById('btn-reload-csv-main')){
-  document.getElementById('btn-reload-csv-main').addEventListener('click', async ()=>{
-    if(!confirm('Se recargarán los datos desde Google Sheets. ¿Desea continuar?')) return;
-    let ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
-    if(!ok) ok = await loadRecordsFromStaticCSV('data/pluviometro.csv');
-    if(ok){ renderHome(); showToast('✅ Datos recargados'); }
-    else{ showToast('⚠️ No fue posible recargar datos', true); }
-  });
-}
 
 console.log('%c🌧️ Pluviómetro INVU — Visor de Datos · Liberia Centro, Guanacaste', 'color:#00b4d8;font-size:14px;font-weight:bold');
 console.log('%cRegistros cargados: ' + records.length, 'color:#90e0ef');
