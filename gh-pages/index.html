@@ -928,6 +928,24 @@ function exportCSV(){
 }
 document.getElementById('btn-export').addEventListener('click', exportCSV);
 
+function reloadRecords(){
+  const latest = loadRecords();
+  if(JSON.stringify(latest) !== JSON.stringify(records)){
+    records = latest;
+    if(currentScreen === 'home') renderHome();
+    else if(currentScreen === 'historial') renderHistorial();
+    else if(currentScreen === 'stats') renderStats();
+  }
+}
+
+window.addEventListener('storage', (event) => {
+  if(event.key === DB_KEY) reloadRecords();
+});
+
+window.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') reloadRecords();
+});
+
 /* =========================================
    TOAST
    ========================================= */
