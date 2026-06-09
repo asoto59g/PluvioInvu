@@ -443,7 +443,8 @@
 /* =========================================
    STORAGE
    ========================================= */
-const DB_KEY    = 'pluvio_records_v1';
+const DB_KEY = 'pluvio_records_v1';
+console.log('Registros encontrados:', loadRecords().length);
 
 function loadRecords() {
   try { return JSON.parse(localStorage.getItem(DB_KEY)) || []; } catch { return []; }
@@ -1002,52 +1003,106 @@ document.querySelectorAll('.stats-tab').forEach(t=>
 /* =========================================
    EXPORT CSV
    ========================================= */
-function exportCSV(){
-  if(!records.length){ showToast('⚠️ No hay datos para exportar', true); return; }
-  const sorted = [...records].sort((a,b)=>a.fechaLectura.localeCompare(b.fechaLectura));
-  const rows = [
-    ['ID','Fecha Lectura','Fecha Inicio Periodo','Lluvia (mm)','Temp Media (°C)','Temp Máx (°C)','Temp Mín (°C)','Hum Media (%)','Hum Máx (%)','Hum Mín (%)','Notas','Timestamp']
-  ];
-  sorted.forEach(r=>rows.push([
-    r.id, r.fechaLectura, r.fechaInicio,
-    (r.mmLluvia||0).toFixed(1),
-    r.temperatura!=null ? r.temperatura.toFixed(1) : '',
-    r.tempMax!=null ? r.tempMax.toFixed(1) : '',
-    r.tempMin!=null ? r.tempMin.toFixed(1) : '',
-    r.humedad!=null ? r.humedad.toFixed(1) : '',
-    r.humMax!=null ? r.humMax.toFixed(1) : '',
-    r.humMin!=null ? r.humMin.toFixed(1) : '',
-    '"'+(r.notas||'').replace(/"/g,'""')+'"',
-    new Date(r.timestamp).toISOString()
-  ]));
-  const csv = rows.map(r=>r.join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `pluviometro_liberia_visor_${todayStr()}.csv`;
-  a.click();
+function exportCSV() {
+
+  if (!records.length) {
+    showToast('⚠️ No hay datos para exportar', true);
+    return;
+  }
+
+  const sorted = [...records].sort(
+    (a, b) => a.fechaLectura.localeCompare(b.fechaLectura)
+  );
+
+  const rows = [[
+    'ID',
+    'Fecha Lectura',
+    'Fecha Inicio Periodo',
+    'Lluvia (mm)',
+    'Temp Media (°C)',
+    'Temp Máx (°C)',
+    'Temp Mín (°C)',
+    'Hum Media (%)',
+    'Hum Máx (%)',
+    'Hum Mín (%)',
+    'Notas',
+    'Timestamp'
+  ]];
+
+  sorted.forEach(r => {
+
+    rows.push([
+      r.id ?? '',
+      r.fechaLectura ?? '',
+      r.fechaInicio ?? '',
+      Number(r.mmLluvia || 0).toFixed(1),
+
+      r.temperatura != null
+        ? Number(r.temperatura).toFixed(1)
+        : '',
+
+      r.tempMax != null
+        ? Number(r.tempMax).toFixed(1)
+        : '',
+
+      r.tempMin != null
+        ? Number(r.tempMin).toFixed(1)
+        : '',
+
+      r.humedad != null
+        ? Number(r.humedad).toFixed(1)
+        : '',
+
+      r.humMax != null
+        ? Number(r.humMax).toFixed(1)
+        : '',
+
+      r.humMin != null
+        ? Number(r.humMin).toFixed(1)
+        : '',
+
+      `"${String(r.notas || '').replace(/"/g, '""')}"`,
+
+      r.timestamp
+        ? new Date(r.timestamp).toISOString()
+        : ''
+    ]);
+
+  });
+
+  const csv = rows.map(row => row.join(',')).join('\n');
+
+  const blob = new Blob(
+    ['\uFEFF' + csv],
+    {
+      type: 'text/csv;charset=utf-8;'
+    }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download =
+    `pluviometro_liberia_visor_${todayStr()}.csv`;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
+
   showToast('📥 CSV exportado correctamente');
 }
-document.getElementById('btn-export').addEventListener('click', exportCSV);
 
-function reloadRecords(){
-  const latest = loadRecords();
-  if(JSON.stringify(latest) !== JSON.stringify(records)){
-    records = latest;
-    if(currentScreen === 'home') renderHome();
-    else if(currentScreen === 'historial') renderHistorial();
-    else if(currentScreen === 'stats') renderStats();
-  }
-}
-
-window.addEventListener('storage', (event) => {
-  if(event.key === DB_KEY) reloadRecords();
-});
-
-window.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible') reloadRecords();
-});
-
+document
+  .getElementById('btn-export')
+  .addEventListener('click', exportCSV);
 /* =========================================
    TOAST
    ========================================= */
