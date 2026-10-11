@@ -251,6 +251,7 @@
     .annual-table tr:hover td { background: rgba(0,180,216,0.04); }
     .annual-table .mm-cell { color: var(--primary); font-weight: 700; }
     .annual-table .temp-cell { color: var(--warn); font-weight: 600; }
+    .annual-table .hum-cell { color: #48cae4; font-weight: 600; }
 
     /* ==================== TOAST ==================== */
     #toast {
@@ -357,9 +358,15 @@
         <span class="badge-count" id="hist-count">0</span>
       </div>
 
+      <!-- Selector de Años -->
+      <div class="month-selector-row" id="hist-year-selector-row" style="margin-bottom:12px;">
+        <span class="month-selector-label">📅 Año</span>
+        <select class="month-selector" id="hist-year-select"></select>
+      </div>
+
+      <!-- Botones de Meses -->
       <div class="filter-row" id="filter-row">
-        <button class="filter-btn active" data-filter="all">Todos</button>
-        <!-- months injected dynamically -->
+        <!-- Los botones se inyectan dinámicamente -->
       </div>
 
       <div id="historial-list"></div>
@@ -371,17 +378,23 @@
         <div class="section-title">📈 Estadísticas</div>
       </div>
 
+      <div class="stats-tabs">
+        <button class="stats-tab active" data-tab="lluvia">🌧️ Lluvia</button>
+        <button class="stats-tab" data-tab="temperatura">🌡️ Temperatura</button>
+        <button class="stats-tab" data-tab="humedad">💧 Humedad</button>
+        <button class="stats-tab" data-tab="anual">📅 Anual</button>
+      </div>
+
       <!-- Month picker -->
       <div class="month-selector-row" id="month-selector-row">
         <span class="month-selector-label">📅 Mes</span>
         <select class="month-selector" id="stats-month-select"></select>
       </div>
 
-      <div class="stats-tabs">
-        <button class="stats-tab active" data-tab="lluvia">🌧️ Lluvia</button>
-        <button class="stats-tab" data-tab="temperatura">🌡️ Temperatura</button>
-        <button class="stats-tab" data-tab="humedad">💧 Humedad</button>
-        <button class="stats-tab" data-tab="anual">📅 Anual</button>
+      <!-- Year picker (visible ONLY on Annual tab) -->
+      <div class="month-selector-row" id="year-selector-row" style="display:none;">
+        <span class="month-selector-label">📅 Año</span>
+        <select class="month-selector" id="stats-year-select"></select>
       </div>
 
       <!-- Charts -->
@@ -408,6 +421,7 @@
               <th>mm Total</th>
               <th>Días lluvia</th>
               <th>Temp. Prom.</th>
+              <th>Hum. Prom.</th>
             </tr>
           </thead>
           <tbody id="annual-tbody"></tbody>
@@ -738,32 +752,68 @@ function renderMiniChart(){
 /* =========================================
    HISTORIAL
    ========================================= */
-let histFilter = 'all';
+let selectedHistYear = new Date().getFullYear().toString();
+let selectedHistMonth = 'all';
 
 function renderHistorial(){
-  const sorted = [...records].sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio));
-  document.getElementById('hist-count').textContent = records.length;
-
-  // Build month filters
-  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort((a,b)=>b.localeCompare(a));
-  const filterRow = document.getElementById('filter-row');
-  filterRow.innerHTML = `<button class="filter-btn ${histFilter==='all'?'active':''}" data-filter="all">Todos</button>`;
-  months.forEach(m=>{
-    filterRow.innerHTML += `<button class="filter-btn ${histFilter===m?'active':''}" data-filter="${m}">${monthShort(m)}</button>`;
-  });
-  filterRow.querySelectorAll('.filter-btn').forEach(b=>
-    b.addEventListener('click', ()=>{ histFilter=b.dataset.filter; renderHistorial(); })
-  );
-
-  // Filter records
-  const filtered = histFilter==='all' ? sorted : sorted.filter(r=>getMonthYear(r.fechaInicio)===histFilter);
-
-  const list = document.getElementById('historial-list');
-  if(!filtered.length){
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌤️</div><div class="empty-text">No hay registros${histFilter!=='all'?' para este mes':''}</div></div>`;
-    return;
+  const allYears = [...new Set(records.map(r => r.fechaInicio.substring(0,4)))].sort((a,b)=>b.localeCompare(a));
+  
+  if(selectedHistYear !== 'Todos' && !allYears.includes(selectedHistYear)){
+    selectedHistYear = allYears.length ? allYears[0] : 'Todos';
   }
 
+  const yearSelect = document.getElementById('hist-year-select');
+  if (yearSelect) {
+    yearSelect.innerHTML = `<option value="Todos" ${selectedHistYear==='Todos'?'selected':''}>Todos los años</option>` +
+      allYears.map(y => `<option value="${y}" ${y===selectedHistYear?'selected':''}>${y}</option>`).join('');
+    
+    // Evitamos reasignar el evento cada vez si ya existe
+    yearSelect.onchange = (e) => {
+      selectedHistYear = e.target.value;
+      selectedHistMonth = 'all'; 
+      renderHistorial();
+    };
+  }
+
+  let filtered = selectedHistYear === 'Todos' 
+    ? [...records] 
+    : records.filter(r => r.fechaInicio.startsWith(selectedHistYear));
+
+  // Botones de meses según los registros disponibles en el año seleccionado
+  const availableMonths = [...new Set(filtered.map(r => r.fechaInicio.substring(5,7)))].sort();
+  
+  const filterRow = document.getElementById('filter-row');
+  if (filterRow) {
+    filterRow.innerHTML = `<button class="filter-btn ${selectedHistMonth==='all'?'active':''}" data-filter="all">Todos</button>`;
+    availableMonths.forEach(m => {
+      const monthNameStr = new Date(`2000-${m}-15`).toLocaleDateString('es-CR',{month:'short'}).toUpperCase();
+      filterRow.innerHTML += `<button class="filter-btn ${selectedHistMonth===m?'active':''}" data-filter="${m}">${monthNameStr}</button>`;
+    });
+
+    filterRow.querySelectorAll('.filter-btn').forEach(b => {
+      b.addEventListener('click', () => { 
+        selectedHistMonth = b.dataset.filter; 
+        renderHistorial(); 
+      });
+    });
+  }
+
+  // Filtrar por el botón del mes
+  if (selectedHistMonth !== 'all') {
+    filtered = filtered.filter(r => r.fechaInicio.substring(5,7) === selectedHistMonth);
+  }
+
+  // Ordenar desde el más reciente
+  filtered.sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio));
+
+  document.getElementById('hist-count').textContent = filtered.length;
+  
+  const list = document.getElementById('historial-list');
+  if(!filtered.length){
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌤️</div><div class="empty-text">No hay registros</div></div>`;
+    return;
+  }
+  
   list.innerHTML = filtered.map(r=>{
     const d = parseDate(r.fechaLectura);
     const dayNum = d.getDate().toString().padStart(2,'0');
@@ -794,10 +844,10 @@ let mainChart = null;
 let annualChart = null;
 let statsTab = 'lluvia';
 let selectedStatsMonth = currentMonthStr();
+let selectedStatsYear = currentMonthStr().substring(0,4);
 
 function populateMonthSelector(){
   const sel = document.getElementById('stats-month-select');
-  // All unique months from records, sorted newest first, plus current month always present
   const allMonths = [...new Set([
     currentMonthStr(),
     ...records.map(r => getMonthYear(r.fechaInicio))
@@ -812,21 +862,43 @@ function populateMonthSelector(){
   sel.onchange = () => { selectedStatsMonth = sel.value; renderStats(); };
 }
 
+function populateYearSelector(){
+  const sel = document.getElementById('stats-year-select');
+  const allYears = [...new Set([
+    currentMonthStr().substring(0,4),
+    ...records.map(r => r.fechaInicio.substring(0,4))
+  ])].sort((a,b)=>b.localeCompare(a));
+
+  sel.innerHTML = allYears.map(y => {
+    return `<option value="${y}" ${y===selectedStatsYear?'selected':''}>${y}</option>`;
+  }).join('');
+
+  sel.onchange = () => { selectedStatsYear = sel.value; renderStats(); };
+}
+
 function renderStats(){
   document.querySelectorAll('.stats-tab').forEach(t=>
     t.classList.toggle('active', t.dataset.tab===statsTab)
   );
 
-  // Hide month selector when viewing annual table (it covers all months)
   const isAnual = statsTab === 'anual';
   document.getElementById('annual-card').style.display       = isAnual ? 'block' : 'none';
   document.getElementById('stats-chart-card').style.display  = isAnual ? 'none'  : 'block';
   document.getElementById('stats-summary-grid').style.display= isAnual ? 'none'  : 'grid';
+  
+  // Toggle Visibility for Selectors
   document.getElementById('month-selector-row').style.display= isAnual ? 'none'  : 'flex';
+  const yearRow = document.getElementById('year-selector-row');
+  if (yearRow) yearRow.style.display = isAnual ? 'flex' : 'none';
 
-  // Populate / refresh the month dropdown
+  if(isAnual){
+    populateYearSelector();
+    renderAnnualTable(); 
+    return;
+  }
+
+  // Si no es anual, renderizamos gráficas y selector mensual
   populateMonthSelector();
-
   const cm = selectedStatsMonth;
   const monthRecs = records.filter(r=>getMonthYear(r.fechaInicio)===cm)
     .sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
@@ -842,10 +914,6 @@ function renderStats(){
   document.getElementById('ss-avg-temp').textContent  = avgTemp!=null ? avgTemp.toFixed(1)+'°C' : '—';
   document.getElementById('ss-max-mm').textContent    = maxMm!=null ? maxMm.toFixed(1)+' mm' : '—';
   document.getElementById('ss-max-temp').textContent  = maxTemp!=null ? maxTemp.toFixed(1)+'°C' : '—';
-
-  if(statsTab === 'anual'){
-    renderAnnualTable(); return;
-  }
 
   if(mainChart) mainChart.destroy();
   const ctx = document.getElementById('main-chart').getContext('2d');
@@ -985,13 +1053,15 @@ function chartOptions(unit, showLegend = false){
 }
 
 function renderAnnualTable(){
-  const months = [...new Set(records.map(r=>getMonthYear(r.fechaInicio)))].sort();
+  const yearRecords = records.filter(r => r.fechaInicio.startsWith(selectedStatsYear));
+  const months = [...new Set(yearRecords.map(r=>getMonthYear(r.fechaInicio)))].sort();
+  
   const tbody = document.getElementById('annual-tbody');
   const tfoot = document.getElementById('annual-tfoot');
   const chartTitle = document.getElementById('annual-chart-title');
   
   if(!months.length){
-    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);padding:20px">Sin datos</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text3);padding:20px">Sin datos para este año</td></tr>';
     tfoot.innerHTML = '';
     chartTitle.innerHTML = '';
     if(annualChart) annualChart.destroy();
@@ -1004,43 +1074,52 @@ function renderAnnualTable(){
   const chartData = [];
 
   tbody.innerHTML = months.map(m=>{
-    const recs = records.filter(r=>getMonthYear(r.fechaInicio)===m);
+    const recs = yearRecords.filter(r=>getMonthYear(r.fechaInicio)===m);
     const total = recs.reduce((s,r)=>s+(r.mmLluvia||0),0);
     const dias  = recs.filter(r=>r.mmLluvia>0).length;
-    const temps = recs.filter(r=>r.temperatura!=null && r.temperatura!=='');
-    const avg   = temps.length ? temps.reduce((s,r)=>s+r.temperatura,0)/temps.length : null;
     
-    // Acumular valores para el total
+    const temps = recs.filter(r=>r.temperatura!=null && r.temperatura!=='');
+    const avgTemp = temps.length ? temps.reduce((s,r)=>s+r.temperatura,0)/temps.length : null;
+    
+    const hums = recs.filter(r=>r.humedad!=null && r.humedad!=='');
+    const avgHum = hums.length ? hums.reduce((s,r)=>s+r.humedad,0)/hums.length : null;
+    
     sumTotalMm += total;
     sumDiasLluvia += dias;
     
-    // Acumular valores para el gráfico
-    chartLabels.push(monthShort(m).toUpperCase());
+    chartLabels.push(new Date(m+'-15').toLocaleDateString('es-CR',{month:'short'}).toUpperCase());
     chartData.push(total);
 
+    const monthNameOnly = new Date(m+'-15').toLocaleDateString('es-CR',{month:'long'});
+
     return `<tr>
-      <td style="text-align:left;text-transform:capitalize">${monthName(m)}</td>
+      <td style="text-align:left;text-transform:capitalize">${monthNameOnly}</td>
       <td class="mm-cell">${total.toFixed(1)}</td>
       <td>${dias}</td>
-      <td class="temp-cell">${avg!=null?avg.toFixed(1)+'°C':'—'}</td>
+      <td class="temp-cell">${avgTemp!=null?avgTemp.toFixed(1)+'°C':'—'}</td>
+      <td class="hum-cell">${avgHum!=null?Math.round(avgHum)+'%':'—'}</td>
     </tr>`;
   }).join('');
 
-  // 1. Agregar el renglón de sumatoria al final de la tabla
+  // Promedios reales anuales 
+  const allTemps = yearRecords.filter(r=>r.temperatura!=null && r.temperatura!=='');
+  const yearAvgTemp = allTemps.length ? allTemps.reduce((s,r)=>s+r.temperatura,0)/allTemps.length : null;
+  
+  const allHums = yearRecords.filter(r=>r.humedad!=null && r.humedad!=='');
+  const yearAvgHum = allHums.length ? allHums.reduce((s,r)=>s+r.humedad,0)/allHums.length : null;
+
   tfoot.innerHTML = `
     <tr>
-      <td style="text-align:left; font-weight:800; color:var(--text); padding-top:12px;">Total Acumulado</td>
+      <td style="text-align:left; font-weight:800; color:var(--text); padding-top:12px;">Total / Prom.</td>
       <td class="mm-cell" style="font-size:15px; font-weight:800; padding-top:12px;">${sumTotalMm.toFixed(1)}</td>
       <td style="font-weight:700; color:var(--text); padding-top:12px;">${sumDiasLluvia}</td>
-      <td style="padding-top:12px;">—</td>
+      <td class="temp-cell" style="font-weight:700; padding-top:12px;">${yearAvgTemp!=null ? yearAvgTemp.toFixed(1)+'°C' : '—'}</td>
+      <td class="hum-cell" style="font-weight:700; padding-top:12px;">${yearAvgHum!=null ? Math.round(yearAvgHum)+'%' : '—'}</td>
     </tr>
   `;
 
-  // 2. Título del gráfico dinámico con el año y el acumulado al momento
-  const anioActual = new Date().getFullYear();
-  chartTitle.innerHTML = `🌧️ Acumulado Anual ${anioActual}: <span style="color:var(--primary)">${sumTotalMm.toFixed(1)} mm</span>`;
+  chartTitle.innerHTML = `🌧️ Acumulado Anual ${selectedStatsYear}: <span style="color:var(--primary)">${sumTotalMm.toFixed(1)} mm</span>`;
 
-  // 3. Renderizar el gráfico de barras anual
   if(annualChart) annualChart.destroy();
   const ctx = document.getElementById('annual-chart').getContext('2d');
   
