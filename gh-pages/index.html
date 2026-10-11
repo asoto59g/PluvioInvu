@@ -13,6 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Plugin Chart.js Datalabels para mostrar el valor sobre las barras -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
     /* ==================== RESET & BASE ==================== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -345,7 +347,7 @@
       <!-- Monthly preview mini chart -->
       <div class="card">
         <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text2)">📊 Precipitación — Mes Actual</div>
-        <div style="position:relative;height:130px">
+        <div style="position:relative;height:140px">
           <canvas id="mini-chart"></canvas>
         </div>
       </div>
@@ -399,7 +401,7 @@
 
       <!-- Charts -->
       <div class="card" id="stats-chart-card">
-        <div class="chart-container">
+        <div class="chart-container" style="height:250px;">
           <canvas id="main-chart"></canvas>
         </div>
       </div>
@@ -431,7 +433,7 @@
         <!-- Nuevo contenedor para el gráfico anual -->
         <div style="margin-top: 24px;">
           <div id="annual-chart-title" style="font-size:14px; font-weight:700; text-align:center; margin-bottom:12px; color:var(--text)"></div>
-          <div style="position:relative; height:200px;">
+          <div style="position:relative; height:220px;">
             <canvas id="annual-chart"></canvas>
           </div>
         </div>
@@ -724,6 +726,7 @@ function renderMiniChart(){
   const ctx = document.getElementById('mini-chart').getContext('2d');
   miniChart = new Chart(ctx, {
     type: 'bar',
+    plugins: [ChartDataLabels],
     data: {
       labels,
       datasets: [{
@@ -735,15 +738,29 @@ function renderMiniChart(){
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend:{display:false}, tooltip:{
-        callbacks:{ label: ctx => ctx.parsed.y.toFixed(1)+' mm' },
-        backgroundColor:'rgba(6,13,31,0.9)', borderColor:'rgba(0,180,216,0.3)',
-        borderWidth:1, titleColor:'#90e0ef', bodyColor:'#e0f4ff',
-      }},
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'end',
+          color: '#90e0ef',
+          font: { size: 9, weight: 'bold', family: 'Inter' },
+          formatter: v => v > 0 ? v.toFixed(1) : ''
+        },
+        tooltip: {
+          callbacks: { label: ctx => ctx.parsed.y.toFixed(1)+' mm' },
+          backgroundColor: 'rgba(6,13,31,0.9)', borderColor: 'rgba(0,180,216,0.3)',
+          borderWidth: 1, titleColor: '#90e0ef', bodyColor: '#e0f4ff',
+        }
+      },
       scales: {
-        x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}} },
-        y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#3d6e8a',font:{size:10}},
-            beginAtZero:true }
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#3d6e8a', font: { size: 10 } } },
+        y: { 
+          grid: { color: 'rgba(255,255,255,0.04)' }, 
+          ticks: { color: '#3d6e8a', font: { size: 10 } },
+          beginAtZero: true,
+          grace: '20%' // Espacio extra para que no se corten las etiquetas superiores
+        }
       }
     }
   });
@@ -767,7 +784,6 @@ function renderHistorial(){
     yearSelect.innerHTML = `<option value="Todos" ${selectedHistYear==='Todos'?'selected':''}>Todos los años</option>` +
       allYears.map(y => `<option value="${y}" ${y===selectedHistYear?'selected':''}>${y}</option>`).join('');
     
-    // Evitamos reasignar el evento cada vez si ya existe
     yearSelect.onchange = (e) => {
       selectedHistYear = e.target.value;
       selectedHistMonth = 'all'; 
@@ -779,7 +795,6 @@ function renderHistorial(){
     ? [...records] 
     : records.filter(r => r.fechaInicio.startsWith(selectedHistYear));
 
-  // Botones de meses según los registros disponibles en el año seleccionado
   const availableMonths = [...new Set(filtered.map(r => r.fechaInicio.substring(5,7)))].sort();
   
   const filterRow = document.getElementById('filter-row');
@@ -798,12 +813,10 @@ function renderHistorial(){
     });
   }
 
-  // Filtrar por el botón del mes
   if (selectedHistMonth !== 'all') {
     filtered = filtered.filter(r => r.fechaInicio.substring(5,7) === selectedHistMonth);
   }
 
-  // Ordenar desde el más reciente
   filtered.sort((a,b)=> b.fechaInicio.localeCompare(a.fechaInicio));
 
   document.getElementById('hist-count').textContent = filtered.length;
@@ -886,7 +899,6 @@ function renderStats(){
   document.getElementById('stats-chart-card').style.display  = isAnual ? 'none'  : 'block';
   document.getElementById('stats-summary-grid').style.display= isAnual ? 'none'  : 'grid';
   
-  // Toggle Visibility for Selectors
   document.getElementById('month-selector-row').style.display= isAnual ? 'none'  : 'flex';
   const yearRow = document.getElementById('year-selector-row');
   if (yearRow) yearRow.style.display = isAnual ? 'flex' : 'none';
@@ -897,13 +909,11 @@ function renderStats(){
     return;
   }
 
-  // Si no es anual, renderizamos gráficas y selector mensual
   populateMonthSelector();
   const cm = selectedStatsMonth;
   const monthRecs = records.filter(r=>getMonthYear(r.fechaInicio)===cm)
     .sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
 
-  // Summary stats
   const totalMm = monthRecs.reduce((s,r)=>s+(r.mmLluvia||0),0);
   const maxMm   = monthRecs.length ? Math.max(...monthRecs.map(r=>r.mmLluvia||0)) : null;
   const temps   = monthRecs.filter(r=>r.temperatura!=null && r.temperatura!=='');
@@ -923,6 +933,7 @@ function renderStats(){
     const data = monthRecs.map(r=>r.mmLluvia||0);
     mainChart = new Chart(ctx,{
       type:'bar',
+      plugins: [ChartDataLabels],
       data:{
         labels,
         datasets:[{
@@ -933,7 +944,7 @@ function renderStats(){
           borderWidth:1, borderRadius:5,
         }]
       },
-      options: chartOptions('mm')
+      options: chartOptions('mm', false, true)
     });
   } else if (statsTab==='temperatura') {
     const dataMed = monthRecs.map(r=>r.temperatura??null);
@@ -974,7 +985,7 @@ function renderStats(){
     mainChart = new Chart(ctx,{
       type:'line',
       data:{ labels, datasets },
-      options: chartOptions('°C', hasMaxMin)
+      options: chartOptions('°C', hasMaxMin, false)
     });
   } else if (statsTab==='humedad') {
     const dataMed = monthRecs.map(r=>r.humedad??null);
@@ -1015,13 +1026,13 @@ function renderStats(){
     mainChart = new Chart(ctx,{
       type:'line',
       data:{ labels, datasets },
-      options: chartOptions('%', hasMaxMin)
+      options: chartOptions('%', hasMaxMin, false)
     });
   }
 }
 
-function chartOptions(unit, showLegend = false){
-  return {
+function chartOptions(unit, showLegend = false, isBar = false){
+  const options = {
     responsive:true, maintainAspectRatio:false,
     plugins:{
       legend:{
@@ -1046,10 +1057,23 @@ function chartOptions(unit, showLegend = false){
         ticks:{color:'#3d6e8a',font:{size:10}}, 
         beginAtZero: unit !== '°C',
         min: unit === '°C' ? 15 : undefined,
-        max: unit === '%' ? 100 : undefined
+        max: unit === '%' ? 100 : undefined,
+        grace: isBar ? '20%' : undefined
       }
     }
   };
+
+  if (isBar) {
+    options.plugins.datalabels = {
+      anchor: 'end',
+      align: 'end',
+      color: '#90e0ef',
+      font: { size: 10, weight: 'bold', family: 'Inter' },
+      formatter: v => v > 0 ? v.toFixed(1) : ''
+    };
+  }
+
+  return options;
 }
 
 function renderAnnualTable(){
@@ -1101,7 +1125,6 @@ function renderAnnualTable(){
     </tr>`;
   }).join('');
 
-  // Promedios reales anuales 
   const allTemps = yearRecords.filter(r=>r.temperatura!=null && r.temperatura!=='');
   const yearAvgTemp = allTemps.length ? allTemps.reduce((s,r)=>s+r.temperatura,0)/allTemps.length : null;
   
@@ -1125,6 +1148,7 @@ function renderAnnualTable(){
   
   annualChart = new Chart(ctx, {
     type: 'bar',
+    plugins: [ChartDataLabels],
     data: {
       labels: chartLabels,
       datasets: [{
@@ -1136,7 +1160,7 @@ function renderAnnualTable(){
         borderRadius: 4,
       }]
     },
-    options: chartOptions('mm')
+    options: chartOptions('mm', false, true)
   });
 }
 
@@ -1148,7 +1172,6 @@ document.querySelectorAll('.stats-tab').forEach(t=>
    EXPORT CSV
    ========================================= */
 function exportCSV() {
-
   if (!records.length) {
     showToast('⚠️ No hay datos para exportar', true);
     return;
@@ -1174,79 +1197,39 @@ function exportCSV() {
   ]];
 
   sorted.forEach(r => {
-
     rows.push([
       r.id ?? '',
       r.fechaLectura ?? '',
       r.fechaInicio ?? '',
       Number(r.mmLluvia || 0).toFixed(1),
-
-      r.temperatura != null
-        ? Number(r.temperatura).toFixed(1)
-        : '',
-
-      r.tempMax != null
-        ? Number(r.tempMax).toFixed(1)
-        : '',
-
-      r.tempMin != null
-        ? Number(r.tempMin).toFixed(1)
-        : '',
-
-      r.humedad != null
-        ? Number(r.humedad).toFixed(1)
-        : '',
-
-      r.humMax != null
-        ? Number(r.humMax).toFixed(1)
-        : '',
-
-      r.humMin != null
-        ? Number(r.humMin).toFixed(1)
-        : '',
-
+      r.temperatura != null ? Number(r.temperatura).toFixed(1) : '',
+      r.tempMax != null ? Number(r.tempMax).toFixed(1) : '',
+      r.tempMin != null ? Number(r.tempMin).toFixed(1) : '',
+      r.humedad != null ? Number(r.humedad).toFixed(1) : '',
+      r.humMax != null ? Number(r.humMax).toFixed(1) : '',
+      r.humMin != null ? Number(r.humMin).toFixed(1) : '',
       `"${String(r.notas || '').replace(/"/g, '""')}"`,
-
-      r.timestamp
-        ? new Date(r.timestamp).toISOString()
-        : ''
+      r.timestamp ? new Date(r.timestamp).toISOString() : ''
     ]);
-
   });
 
   const csv = rows.map(row => row.join(',')).join('\n');
-
-  const blob = new Blob(
-    ['\uFEFF' + csv],
-    {
-      type: 'text/csv;charset=utf-8;'
-    }
-  );
-
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
-
   const link = document.createElement('a');
 
   link.href = url;
-  link.download =
-    `pluviometro_liberia_visor_${todayStr()}.csv`;
-
+  link.download = `pluviometro_liberia_visor_${todayStr()}.csv`;
   document.body.appendChild(link);
-
   link.click();
-
   document.body.removeChild(link);
 
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 1000);
-
+  setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
   showToast('📥 CSV exportado correctamente');
 }
 
-document
-  .getElementById('btn-export')
-  .addEventListener('click', exportCSV);
+document.getElementById('btn-export').addEventListener('click', exportCSV);
+
 /* =========================================
    TOAST
    ========================================= */
@@ -1264,10 +1247,8 @@ function showToast(msg, isError=false){
    ========================================= */
 if(window.location.protocol === 'file:'){
   showToast('⚠️ No abra este archivo como file://. Use un servidor local (http://localhost).', true);
-  console.warn('La app se cargó desde file:// y fetch puede fallar. Inicie un servidor local o use Live Server.');
 }
 
-// Try loading from Google Sheets first, then fall back to local CSV
 const GOOGLE_SHEET_ID = '1J25tcSTiHlOtEuEGtyN-WFsHvsqnGLnPnrtaW03c6Q4';
 (async ()=>{
   const ok = await loadRecordsFromGoogleSheets(GOOGLE_SHEET_ID);
