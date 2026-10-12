@@ -840,8 +840,8 @@ function renderHistorial(){
         <div class="record-data">
           <div class="record-vals">
             <span class="record-mm">🌧️ ${(r.mmLluvia||0).toFixed(1)} mm</span>
-            ${r.temperatura!=null ? `<span class="record-temp">🌡️ Med: ${r.temperatura.toFixed(1)}°C | Máx: ${r.tempMax!=null?r.tempMax.toFixed(1):'—'} \vert{} Mín: ${r.tempMin!=null?r.tempMin.toFixed(1):'—'}</span>` : ''}
-            ${r.humedad!=null ? `<span class="record-temp" style="color:#48cae4">💧 Med: ${Math.round(r.humedad)}% | Máx: ${r.humMax!=null?Math.round(r.humMax):'—'} \vert{} Mín: ${r.humMin!=null?Math.round(r.humMin):'—'}</span>` : ''}
+${r.temperatura!=null ? `<span class="record-temp">🌡️ Med: ${r.temperatura.toFixed(1)}°C | Máx: ${r.tempMax!=null?r.tempMax.toFixed(1):'—'} | Mín: ${r.tempMin!=null?r.tempMin.toFixed(1):'—'}</span>` : ''}
+            ${r.humedad!=null ? `<span class="record-temp" style="color:#48cae4">💧 Med: ${Math.round(r.humedad)}% | Máx: ${r.humMax!=null?Math.round(r.humMax):'—'} | Mín: ${r.humMin!=null?Math.round(r.humMin):'—'}</span>` : ''}
           </div>
           <div class="record-period">Período: 7am ${fmtDateShort(r.fechaInicio)} → 7am ${fmtDateShort(r.fechaLectura)}</div>
           ${r.notas ? `<div class="record-notes">${r.notas}</div>` : ''}
